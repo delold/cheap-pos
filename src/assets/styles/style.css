@@ -1,0 +1,131 @@
+body {
+  font-family: Arial;
+  overflow: hidden;
+  background: black;
+}
+.app {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+}
+.app * {
+  box-sizing: border-box;
+}
+.app > * {
+  position: absolute;
+  bottom: 0;
+  top: 0;
+}
+.content {
+  left: 0;
+  width: 60%;
+  z-index: 99;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.4);
+}
+.content .list {
+  font-size: 24px;
+  overflow-y: auto;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  top: 60px;
+}
+.content .list .item,
+.content .list .label {
+  width: 100%;
+  background: white;
+  padding: 0px 30px;
+  display: flex;
+  line-height: 60px;
+}
+.content .list .item .poradi,
+.content .list .label .poradi {
+  flex-basis: 40px;
+  font-size: 20px;
+}
+.content .list .item .cena,
+.content .list .label .cena {
+  flex-grow: 2;
+}
+.content .list .item .celkem,
+.content .list .label .celkem {
+  margin-left: 30px;
+  flex-basis: 180px;
+  text-align: right;
+}
+.content .list .label {
+  line-height: 40px;
+  font-size: 20px;
+  background: #E91E63;
+  color: white;
+}
+.content .list .item:nth-child(2n) {
+  background: #f2f2f2;
+}
+.content .toolbar {
+  width: 100%;
+  height: 60px;
+  background: #3F51B5;
+  line-height: 60px;
+  font-size: 20px;
+  color: white;
+  padding: 0px 30px;
+}
+.sidebar {
+  background: #e6e6e6;
+  left: 60%;
+  width: 40%;
+  padding: 20px;
+  overflow-y: auto;
+}
+.sidebar .display {
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2), 0px 2px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  text-align: right;
+  border-radius: 3px;
+  margin-bottom: 30px;
+}
+.sidebar .display.inactive {
+  opacity: 0.3;
+}
+.sidebar .display.inactive:hover {
+  opacity: 0.7;
+  cursor: pointer;
+}
+.sidebar .display:nth-child(2) .total {
+  background: #8BC34A;
+}
+.sidebar .display:nth-child(3) .total {
+  background: #9C27B0;
+}
+.sidebar .display:nth-child(4) .total {
+  background: #F44336;
+}
+.sidebar .display .total {
+  background: #00BCD4;
+  line-height: 10vw;
+  font-size: 5vw;
+  color: white;
+  padding: 0px 20px;
+  display: block;
+}
+.sidebar .display .helper {
+  display: block;
+  width: 100%;
+  background: white;
+  color: black;
+  line-height: 50px;
+  padding: 0px 20px;
+  font-size: 20px;
+  height: 50px;
+  overflow: hidden;
+}
+.sidebar .display .helper:before {
+  content: "Celkem: ";
+  float: left;
+  opacity: 0.3;
+}

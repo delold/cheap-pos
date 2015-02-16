@@ -1,0 +1,28 @@
+{
+  "name": "NodeCashier",
+  "main": "index.html",
+  "version": "0.0.0",
+  "authors": [
+    "David Duong <david@duong.cz>"
+  ],
+  "description": "Cashier based on Node",
+  "keywords": [
+    "nwjs"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "react": "~0.12.2",
+    "backbone": "~1.1.2"
+  },
+  "devDependencies": {
+    "livereload-js": "~2.2.1"
+  }
+}
