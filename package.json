@@ -3,12 +3,16 @@
   "version": "0.1.0",
   "description": "Simple POS interface",
   "main": "index.html",
+  "node-main": "assets/scripts/debug.js",
   "scripts": {
-  	"start": "nodewebkit",
-  	"dev": "gulp dev"
+    "start": "nodewebkit",
+    "dev": "gulp dev"
   },
   "keywords": [
-    "cash", "nodewebkit", "node", "pos"
+    "cash",
+    "nodewebkit",
+    "node",
+    "pos"
   ],
   "author": "David Duong",
   "license": "MIT",
@@ -26,6 +30,8 @@
     "gulp": "^3.8.11",
     "gulp-jsx": "^0.7.0",
     "gulp-less": "^3.0.0",
-    "gulp-livereload": "^3.7.0"
+    "gulp-livereload": "^3.7.0",
+    "gulp-notify": "^2.2.0",
+    "gulp-plumber": "^0.6.6"
   }
 }
