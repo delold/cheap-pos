@@ -2,9 +2,11 @@ var app = app || {};
 
 app.Util = {
 	Key: {
-		number: 1, backspace: 2, enter: 3, nudge: 4, dot: 5, unknown: 6,
+		number: 1, backspace: 2, enter: 3, nudge: 4, dot: 5, arrow: 6, delete: 7, unknown: 8,
+		arrowTypes: {left:1, top: 2, right: 3, bottom: 4},
 		listeners: [],
 		fromKeyCode: function(key) {
+			//TODO: find better ways to map
 			if ((key >= 48 && key <= 57) || (key >= 96 && key <= 105)){
 			    return new this.Press(this.number, key-48 * ((key >= 96 && key <= 105)+1));
 			} else if (key == 13) {
@@ -15,12 +17,17 @@ app.Util = {
 				return new this.Press(this.backspace);
 			} else if (key == 190 || key == 110) {
 				return new this.Press(this.dot, ".");
-			}
+			} else if (key >= 37 && key <= 40) {
+				return new this.Press(this.arrow, key - 36);
+			} else if (key == 46) {
+				return new this.Press(this.delete);
+			} 
 
 			if(key == 123) {
 				require("nw.gui").Window.get().showDevTools();
 			}
 
+			console.info(key);
 
 			return new this.Press(this.unknown);
 		},

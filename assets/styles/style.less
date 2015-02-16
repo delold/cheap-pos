@@ -1,7 +1,7 @@
 body {
 	font-family: Arial;
 	overflow: hidden;
-	background: black;
+	background: lighten(black, 20%);
 }
 
 
@@ -10,7 +10,9 @@ body {
 	position: absolute;
 	top: 0; left: 0; right: 0; bottom: 0;
 
-	// -webkit-transform: translateX(360px);
+	// -webkit-transform: translateX(20%);
+
+	transition: -webkit-transform 0.5s;
 
 	background: white;
 	* { box-sizing: border-box; }
@@ -41,8 +43,18 @@ body {
 		right: 0;
 		left: 0;
 		top: 60px;
+
+		// z-index: 1000;
+
+		// top: 250px;
+
+		background: white;
+		transition: top 0.6s;
 	}
 	
+	.list .item.active {
+		background: lighten(#00BCD4, 30%) !important;
+	}
 
 	.list .item, .list .label {
 		width: 100%;
@@ -75,7 +87,6 @@ body {
 		font-size: 20px;
 		background: #E91E63;
 		color: white;
-
 	}
 
 	.list .item:nth-child(2n) {
@@ -84,12 +95,46 @@ body {
 
 	.toolbar {
 		width: 100%;
-		height: 60px;
+		height: 250px;
 		background: #3F51B5;
 		line-height: 60px;
 		font-size: 20px;
 		color: white;
-		padding: 0px 30px;
+		padding: 0px 0px;
+	}
+
+	.toolbar .hamburger {
+		width: 30px;
+		height: 30px;
+		display: inline-block;
+		float: left;
+		margin: (60px - 30px) / 2 0px;
+		margin-left: 30px - 9px;
+		margin-right: 70px - (21px+30px + 1px);
+		position: relative;
+	}
+
+	.toolbar .hamburger:before, .toolbar .hamburger:after, .toolbar .hamburger span {
+		content: "";
+		display: block;
+		position: absolute;
+		background: white;
+		height: 3px;
+		width: 70%;
+
+		margin-left: 30px*0.15 - 1px;
+	}
+
+	.toolbar .hamburger:before {
+		top: 6.5px;
+	}
+
+	.toolbar .hamburger:after {
+		bottom: 6.5px;
+	}
+
+	.toolbar .hamburger span {
+		top: (30px / 2) - 3px / 2;
 	}
 }
 

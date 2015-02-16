@@ -18,10 +18,22 @@ app.shop.ShopCart = Backbone.Collection.extend({
 app.shop.ShopCustomer = Backbone.Model.extend({
 	defaults: {
 		"itemList": [], 
-		"screen": "0"
+		"screen": "0",
+		"selectedItem": -1
 	},
 	addItem: function(shopItem) {
-		this.get("itemList").add(shopItem);
+		return this.get("itemList").indexOf(this.get("itemList").add(shopItem));
+	},
+	getItem: function(position) {
+		position = position || this.get("selectedItem");
+
+		return this.get("itemList").at(position);
+	},
+	removeItem: function(position) {
+		return this.get("itemList").remove(this.getItem(position));
+	},
+	getCount: function() {
+		return this.get("itemList").length;
 	},
 	getTotal: function() {
 		return this.get("itemList").reduce(function(memo, item) {
@@ -37,10 +49,7 @@ app.shop.ShopCustomer = Backbone.Model.extend({
 });
 
 app.shop.ShopCustomerCollection = Backbone.Collection.extend({
-	model: app.shop.ShopCustomer,
-	initialize: function() {
-
-	}
+	model: app.shop.ShopCustomer
 });
 
 app.shop.Shop = Backbone.Model.extend({

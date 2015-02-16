@@ -83,6 +83,7 @@ app.gui = {
 		},
 		watchBackboneProps: function (props, listenTo) {
 			listenTo(props.customer, 'all');
+			listenTo(props.customer.get("itemList"), "all");
 	 	},
 		render: function() {
 			return (
@@ -103,9 +104,32 @@ app.gui = {
 				text += (text.length == 0 ? "0" : "") + press.value;
 			} 
 
+			if(press.type == app.Util.Key.nudge) {
+				var selected = this.props.customer.get("selectedItem");
+				if(selected >= 0 && selected < this.props.customer.getCount()) {
+					var item = this.props.customer.getItem(selected);
+					item.set("ammount", item.get("ammount") + press.value);
+
+					if(item.get("ammount") <= 0) {
+						this.props.customer.removeItem(selected);
+						this.props.customer.set("selectedItem", Math.min(selected, this.props.customer.getCount()-1));
+					}
+				}
+			}
+
+			if(press.type == app.Util.Key.delete) {
+				var selected = this.props.customer.get("selectedItem");
+				if(selected >= 0 && selected < this.props.customer.getCount()) {
+					this.props.customer.removeItem(selected);
+					this.props.customer.set("selectedItem", Math.min(selected, this.props.customer.getCount()-1));
+				}
+			}
+
 			if (press.type == app.Util.Key.enter && _.isFinite(text) && Number.parseFloat(text) != 0) {
 				var item = new app.shop.ShopItem({"price": Number.parseFloat(text), "ammount": 1});
-				this.props.customer.addItem(item);
+				var selected = this.props.customer.addItem(item);
+
+				this.props.customer.set("selectedItem", selected);
 
 				this.props.customer.set("screen", "");
 			} else {
@@ -124,16 +148,30 @@ app.gui = {
 		}
 	}),
 	ShopList: React.createClass({
-		mixins: [app.gui.mixins.BackboneEvents],
+		mixins: [app.gui.mixins.KeyboardEvents, app.gui.mixins.BackboneEvents],
 		getBackboneState: function (props) {
 			return {customer: props.customer.toJSON()};
 		},
 		watchBackboneProps: function (props, listenTo) {
 			listenTo(props.customer, 'all');
+			listenTo(props.customer.get("itemList"), "all")
+	 	},
+	 	onKeyPress: function(key) {
+	 		if(key.type == app.Util.Key.arrow) {
+	 			var val = this.props.customer.get("selectedItem");
+	 			if(key.value == app.Util.Key.arrowTypes.top) {
+	 				val -= 1;
+	 			} else if (key.value == app.Util.Key.arrowTypes.bottom) {
+	 				val += 1;
+	 			}
+
+	 			this.props.customer.set("selectedItem", Math.min(Math.max(val, 0), this.props.customer.getCount() - 1));
+	 		}
 	 	},
 		render: function() {
+			var _this = this;
 			var itemList = this.props.customer.getItems().map(function(item, position) {
-				return (<app.gui.ShopItem item={{pos: position+1, data: item}}/>);
+				return (<app.gui.ShopItem item={{pos: position+1, data: item, active: (_this.props.customer.get("selectedItem") == position)}}/>);
 			});
 			return (
 				<div className="list"><app.gui.ShopItem hint="true"/>{itemList}</div>
@@ -142,11 +180,17 @@ app.gui = {
 	}),
 	ShopItem: React.createClass({
 		getDefaultProps: function() {
-			return {"hint":false};
+			return {"hint":false, "item": {}};
 		},
 		render: function() {
+			var cx = React.addons.classSet;
+			var classes = cx({
+				"label": this.props.hint,
+				"item": !this.props.hint,
+				"active": this.props.item.active
+			});
 			return (
-				<div className={this.props.hint ? "label" : "item"}>
+				<div className={classes}>
 					<span className="poradi">{this.props.hint ? "#" : this.props.item.pos}</span>
 					<span className="cena">{this.props.hint ? "Cena" : app.Util.Number.format(this.props.item.data.get("price"), true, true,",- Kč")}</span>
 					<span className="ks">{this.props.hint ? "Počet" : app.Util.Number.format(this.props.item.data.get("ammount"), false, false, " ks")}</span>
@@ -157,7 +201,13 @@ app.gui = {
 	}),
 	Toolbar: React.createClass({
 		render: function() {
-			return (<div className="toolbar"><app.gui.Time/></div>);
+			return (<div className="toolbar"><app.gui.MenuBurger/><app.gui.Time/></div>);
+		}
+	}),
+
+	MenuBurger: React.createClass({
+		render: function() {
+			return <div className="hamburger"><span className="middie" /></div>;
 		}
 	}),
 	Time: React.createClass({
