@@ -1,1 +1,0 @@
-bin\nw.exe src

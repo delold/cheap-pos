@@ -1,17 +1,19 @@
 {
   "name": "NodeCashier",
-  "version": "0.0.0",
-  "description": "Simple cashier interface",
+  "version": "0.1.0",
+  "description": "Simple POS interface",
   "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  	"start": "nodewebkit",
+  	"dev": "gulp dev"
   },
   "keywords": [
-    "cash"
+    "cash", "nodewebkit", "node", "pos"
   ],
-  "author": "",
+  "author": "David Duong",
   "license": "MIT",
   "dependencies": {
+    "nodewebkit": "^0.11.6",
     "pouchdb": "^3.3.0"
   },
   "window": {

@@ -14,13 +14,20 @@ gulp.task("html", function() {
 	return gulp.src("./*.html").pipe(livereload());
 });
 
-gulp.task("default", function() {
-	console.log("test");
-});
-
 gulp.task("watch", function() {
 	livereload.listen();
 	gulp.watch("./assets/styles/**", ["styles"]);
 	gulp.watch("./assets/scripts/**", ["scripts"]);
 	gulp.watch("./*.html", ["html"]);
-})
+});
+
+gulp.task("run", function() {
+	var path = require("nodewebkit").findpath();
+	var spawn = require('child_process').spawn;
+
+	spawn(path, [__dirname]);
+});
+
+gulp.task("dev", ["run", "watch"]);
+
+gulp.task("default", ["dev"]);
