@@ -2,7 +2,7 @@ var app = app || {};
 
 app.Util = {
 	Key: {
-		number: 1, backspace: 2, enter: 3, nudge: 4, dot: 5, arrow: 6, delete: 7, unknown: 8,
+		number: 1, backspace: 2, enter: 3, nudge: 4, dot: 5, arrow: 6, delete: 7, menu: 8, cash: 9, tab: 10, unknown: -1,
 		arrowTypes: {left:1, top: 2, right: 3, bottom: 4},
 		listeners: [],
 		fromKeyCode: function(key) {
@@ -21,7 +21,13 @@ app.Util = {
 				return new this.Press(this.arrow, key - 36);
 			} else if (key == 46) {
 				return new this.Press(this.delete);
-			} 
+			} else if (key == 27) {
+				return new this.Press(this.menu);
+			} else if (key == 34) {
+				return new this.Press(this.cash);
+			} else if (key == 9) {
+				return new this.Press(this.tab);
+			}
 
 			if(key == 123) {
 				require("nw.gui").Window.get().showDevTools();
@@ -38,6 +44,8 @@ app.Util = {
 			_this.listeners.forEach(function(listener) {
 				return typeof listener !== "undefined" ? listener(key) : false;
 			});
+
+			event.preventDefault();
 		},
 		addListener: function(callback) {
 			this.listeners.push(callback);

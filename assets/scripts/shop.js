@@ -19,7 +19,8 @@ app.shop.ShopCustomer = Backbone.Model.extend({
 	defaults: {
 		"itemList": [], 
 		"screen": "0",
-		"selectedItem": -1
+		"selectedItem": -1,
+		"mode": "add"
 	},
 	addItem: function(shopItem) {
 		return this.get("itemList").indexOf(this.get("itemList").add(shopItem));
@@ -43,6 +44,15 @@ app.shop.ShopCustomer = Backbone.Model.extend({
 	getItems: function() {
 		return this.get("itemList");
 	},
+	clearItems: function() {
+		this.set("itemList", []);
+		this.initialize();
+	},
+	setScreen: function(screen, mode) {
+		mode = mode || "add";
+		this.set("screen", String(screen));
+		this.set("mode", mode);
+	},
 	initialize: function() {
 		this.set("itemList", new app.shop.ShopCart(this.get("itemList")))
 	}
@@ -62,8 +72,6 @@ app.shop.Shop = Backbone.Model.extend({
 	},
 	getCustomer: function(customer) {
 		customer = customer || this.get("activeCustomer");
-
-		console.log(this.get("customerList"));
 
 		return this.get("customerList").at(customer);
 	},

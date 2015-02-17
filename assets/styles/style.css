@@ -12,6 +12,9 @@ body {
   transition: -webkit-transform 0.5s;
   background: white;
 }
+.app.active {
+  -webkit-transform: translateX(20%);
+}
 .app * {
   box-sizing: border-box;
 }
@@ -68,18 +71,29 @@ body {
   font-size: 20px;
   background: #E91E63;
   color: white;
+  top: 0;
+}
+.content .list .items {
+  position: absolute;
+  top: 40px;
+  bottom: 0px;
+  width: 100%;
+  overflow-y: overlay;
 }
 .content .list .item:nth-child(2n) {
   background: #f2f2f2;
 }
 .content .toolbar {
   width: 100%;
-  height: 250px;
   background: #3F51B5;
   line-height: 60px;
   font-size: 20px;
   color: white;
   padding: 0px 0px;
+  overflow: hidden;
+}
+.content .toolbar canvas {
+  display: block;
 }
 .content .toolbar .hamburger {
   width: 30px;
