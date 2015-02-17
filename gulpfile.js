@@ -3,25 +3,43 @@ var less = require("gulp-less");
 var livereload = require("gulp-livereload");
 var plumber = require('gulp-plumber');
 var notify = require("gulp-notify");
+var mocha = require("gulp-mocha");
+var react = require("gulp-react");
 
 
 gulp.task("styles", function() {
-	return gulp.src("./assets/styles/*.less").pipe(plumber(notify.onError("Error: <%= error.message %>"))).pipe(less()).pipe(gulp.dest("./assets/styles")).pipe(livereload());
+	return gulp.src("./assets/styles/*.less")
+		.pipe(plumber(notify.onError("Error: <%= error.message %>")))
+		.pipe(less())
+		.pipe(gulp.dest("./assets/styles"))
+		.pipe(livereload());
+});
 
+gulp.task("react", function() {
+	return gulp.src("./assets/scripts/*.jsx")
+		.pipe(plumber(notify.onError("Error: <%= error.message %>")))
+		.pipe(react())
+		.pipe(gulp.dest("./assets/scripts"))
+		.pipe(livereload());
 });
 
 gulp.task("scripts", function() {
-	return gulp.src("./assets/scripts/**").pipe(plumber(notify.onError("Error: <%= error.message %>"))).pipe(livereload());
+	return gulp.src("./assets/scripts/*.js")
+		.pipe(plumber(notify.onError("Error: <%= error.message %>")))
+		.pipe(livereload());
 });
 
 gulp.task("html", function() {
-	return gulp.src("./*.html").pipe(plumber(notify.onError("Error: <%= error.message %>"))).pipe(livereload());
+	return gulp.src("./*.html")
+		.pipe(plumber(notify.onError("Error: <%= error.message %>")))
+		.pipe(livereload());
 });
 
 gulp.task("watch", function() {
 	livereload.listen();
 	gulp.watch("./assets/styles/*.less", ["styles"]);
-	gulp.watch("./assets/scripts/**", ["scripts"]);
+	gulp.watch("./assets/scripts/*.js", ["scripts"]);
+	gulp.watch("./assets/scripts/*.jsx", ["react"]);
 	gulp.watch("./*.html", ["html"]);
 });
 
@@ -30,6 +48,11 @@ gulp.task("run", function() {
 	var spawn = require('child_process').spawn;
 
 	spawn(path, [__dirname]);
+});
+
+
+gulp.task("test", function() {
+	return gulp.src("test/*.js").pipe(mocha());
 });
 
 gulp.task("dev", ["run", "watch"]);

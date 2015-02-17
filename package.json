@@ -27,11 +27,18 @@
     "kiosk": false
   },
   "devDependencies": {
+    "chai": "^2.0.0",
     "gulp": "^3.8.11",
+    "gulp-jasmine": "^2.0.0",
     "gulp-jsx": "^0.7.0",
     "gulp-less": "^3.0.0",
     "gulp-livereload": "^3.7.0",
+    "gulp-mocha": "^2.0.0",
     "gulp-notify": "^2.2.0",
-    "gulp-plumber": "^0.6.6"
+    "gulp-plumber": "^0.6.6",
+    "gulp-react": "^2.0.0",
+    "npm-path": "^1.0.1",
+    "selenium-webdriver": "^2.44.0",
+    "webdriverio": "^2.4.5"
   }
 }
