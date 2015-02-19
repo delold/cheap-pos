@@ -1,87 +1,19 @@
-var app = app || {};
-app.gui = app.gui || {};
+var data = require("../data/shop");
+var mixins = require("../mixins");
+var numberlib = require("../utils/number");
+var keylib = require("../utils/key");
 
-app.gui.mixins = {
-	KeyboardEvents: {
-		componentDidMount: function() {
-			app.Util.Key.addListener(this.onKeyPress);
-		},
-		componentWillUnmount: function() {
-			app.Util.Key.removeListener(this.onKeyPress);
-		}
-	},
-	WindowEvents: {
-		componentDidMount: function() {
-			if(typeof this.onResize !== "undefined") {
-				window.addEventListener("resize", this.onResize);
-			}
-		},
-		componentWillUnmount: function() {
-			if(typeof this.onResize !== "undefined") {
-				window.removeEventListener("resize", this.onResize);
-			}
-		},
-		getWindowSize: function() {
-			return {height: window.innerHeight, width: window.innerWidth};
-		}
-	},
-	BackboneEvents: {
-		getInitialState: function () {
-			return this.getBackboneState(this.props);
-		},
-		componentDidMount: function () {
-			if (!_.isFunction(this.getBackboneState)) {
-				throw new Error('You must provide getBackboneState(props).');
-			}
-			this._bindBackboneEvents(this.props);
-		},
-		componentWillReceiveProps: function (newProps) {
-			this._unbindBackboneEvents();
-			this._bindBackboneEvents(newProps);
-		},
 
-		componentWillUnmount: function () {
-			this._unbindBackboneEvents();
-		},
+var React = require("react/addons");
+var _ = require("underscore");
 
-		_updateBackboneState: function () {
-			var state = this.getBackboneState(this.props);
-			this.setState(state);
-		},
+var gui = {};
 
-		_bindBackboneEvents: function (props) {
-			if (!_.isFunction(this.watchBackboneProps)) {
-				return;
-			} else if (this._backboneListener) {
-				throw new Error('Listener already exists.');
-			} else if (!props) {
-				throw new Error('Passed props are empty');
-			}
-
-			var listener = _.extend({}, Backbone.Events);
-			listenTo = _.partial(listener.listenTo.bind(listener), _, _, this._updateBackboneState);
-
-			this.watchBackboneProps(props, listenTo);
-			this._backboneListener = listener;
-		},
-
-		_unbindBackboneEvents: function () {
-			if (!_.isFunction(this.watchBackboneProps)) {
-				return;
-			} else if (!this._backboneListener) {
-				throw new Error('Listener does not exist.');
-			}
-			this._backboneListener.stopListening();
-			delete this._backboneListener;
-		}	
-	}
-}
-
-app.gui = {
+gui = {
 	AppUI: React.createClass({
-		mixins: [app.gui.mixins.KeyboardEvents],
+		mixins: [mixins.KeyboardEvents],
 		onKeyPress: function(key) {
-			if(key.type == app.Util.Key.menu) {
+			if(key.type == keylib.menu) {
 				this.setState({"menu": !this.state.menu});
 			}
 		},
@@ -90,18 +22,18 @@ app.gui = {
 		},
 		render: function() {
 			return <div className={"app" + (this.state.menu ? " active" : "")}>
-				<app.gui.Content {...this.props} />
-				<app.gui.Sidebar {...this.props} />
+				<gui.Content {...this.props} />
+				<gui.Sidebar {...this.props} />
 			</div>;
 		}
 	}),
 	Sidebar: React.createClass({
 		render: function() {
-			return <div className="sidebar"><app.gui.Customer customer={this.props.shop.getCustomer()}/></div>;
+			return <div className="sidebar"><gui.Customer customer={this.props.shop.getCustomer()}/></div>;
 		}
 	}),
 	Customer: React.createClass({
-		mixins: [app.gui.mixins.KeyboardEvents, app.gui.mixins.BackboneEvents],
+		mixins: [mixins.KeyboardEvents, mixins.BackboneEvents],
 		getBackboneState: function (props) {
 			return {customer: props.customer.toJSON()};
 		},
@@ -112,8 +44,8 @@ app.gui = {
 		render: function() {
 			return (
 				<div className="display">
-					<span className="total">{app.Util.Number.format(this.props.customer.get("screen"))}</span>
-					<span className="helper">{app.Util.Number.format(this.props.customer.getTotal())}</span>
+					<span className="total">{numberlib.format(this.props.customer.get("screen"))}</span>
+					<span className="helper">{numberlib.format(this.props.customer.getTotal())}</span>
 				</div>
 			);
 		},
@@ -125,7 +57,7 @@ app.gui = {
 			var type = press.type;
 			var value = press.value;
 
-			var Key = app.Util.Key;
+			var Key = keylib;
 
 			if(mode == "cash" || mode == "total") {
 				text = "";
@@ -139,7 +71,7 @@ app.gui = {
 				}
 			}
 
-			if([app.Util.Key.number, app.Util.Key.backspace, app.Util.Key.dot].indexOf(press.type) !== -1) {
+			if([keylib.number, keylib.backspace, keylib.dot].indexOf(press.type) !== -1) {
 				if(type == Key.number) {
 					if (text.indexOf(".") > 0 && text.split(".")[1].length >= 2) 
 						return;
@@ -159,7 +91,7 @@ app.gui = {
 					text = this.props.customer.getTotal() - Number.parseFloat(text);
 					mode = "cash";
 				} else {
-					var item = new app.shop.ShopItem({"price": Number.parseFloat(text), "ammount": 1});
+					var item = new data.ShopItem({"price": Number.parseFloat(text), "ammount": 1});
 					var selected = this.props.customer.addItem(item);
 					this.props.customer.set("selectedItem", selected);
 					
@@ -190,14 +122,14 @@ app.gui = {
 		render: function() {
 			return (
 				<div className="content">
-					<app.gui.Toolbar/>
-					<app.gui.ShopList customer={this.props.shop.getCustomer()}/>
+					<gui.Toolbar/>
+					<gui.ShopList customer={this.props.shop.getCustomer()}/>
 				</div>
 			);
 		}
 	}),
 	ShopList: React.createClass({
-		mixins: [app.gui.mixins.KeyboardEvents, app.gui.mixins.BackboneEvents],
+		mixins: [mixins.KeyboardEvents, mixins.BackboneEvents],
 		getBackboneState: function (props) {
 			return {customer: props.customer.toJSON()};
 		},
@@ -206,11 +138,11 @@ app.gui = {
 			listenTo(props.customer.get("itemList"), "all")
 	 	},
 	 	onKeyPress: function(key) {
-	 		if(key.type == app.Util.Key.arrow) {
+	 		if(key.type == keylib.arrow) {
 	 			var val = this.props.customer.get("selectedItem");
-	 			if(key.value == app.Util.Key.arrowTypes.top) {
+	 			if(key.value == keylib.arrowTypes.top) {
 	 				val -= 1;
-	 			} else if (key.value == app.Util.Key.arrowTypes.bottom) {
+	 			} else if (key.value == keylib.arrowTypes.bottom) {
 	 				val += 1;
 	 			}
 
@@ -220,10 +152,10 @@ app.gui = {
 		render: function() {
 			var _this = this;
 			var itemList = this.props.customer.getItems().map(function(item, position) {
-				return (<app.gui.ShopItem item={{pos: position+1, data: item, active: (_this.props.customer.get("selectedItem") == position)}}/>);
+				return (<gui.ShopItem item={{pos: position+1, data: item, active: (_this.props.customer.get("selectedItem") == position)}}/>);
 			});
 			return (
-				<div className="list"><app.gui.ShopItem hint="true"/><div className="items">{itemList}</div></div>
+				<div className="list"><gui.ShopItem hint="true"/><div className="items">{itemList}</div></div>
 			);
 		}
 	}),
@@ -241,16 +173,16 @@ app.gui = {
 			return (
 				<div className={classes}>
 					<span className="poradi">{this.props.hint ? "#" : this.props.item.pos}</span>
-					<span className="cena">{this.props.hint ? "Cena" : app.Util.Number.format(this.props.item.data.get("price"), true, true,",- Kč")}</span>
-					<span className="ks">{this.props.hint ? "Počet" : app.Util.Number.format(this.props.item.data.get("ammount"), false, false, " ks")}</span>
-					<span className="celkem">{this.props.hint ? "Součet" : app.Util.Number.format(this.props.item.data.getTotal())}</span>
+					<span className="cena">{this.props.hint ? "Cena" : numberlib.format(this.props.item.data.get("price"), true, true,",- Kč")}</span>
+					<span className="ks">{this.props.hint ? "Počet" : numberlib.format(this.props.item.data.get("ammount"), false, false, " ks")}</span>
+					<span className="celkem">{this.props.hint ? "Součet" : numberlib.format(this.props.item.data.getTotal())}</span>
 				</div>
 			);
 		}
 	}),
 	Toolbar: React.createClass({
 		render: function() {
-			return (<div className="toolbar"><app.gui.MenuBurger/><app.gui.Time/><app.gui.StatsChart /></div>);
+			return (<div className="toolbar"><gui.MenuBurger/><gui.Time/><gui.StatsChart /></div>);
 		}
 	}),
 	MenuBurger: React.createClass({
@@ -259,8 +191,9 @@ app.gui = {
 		}
 	}),
 	StatsChart: React.createClass({
-		mixins: [app.gui.mixins.WindowEvents],
+		mixins: [mixins.WindowEvents],
 		getInitialState: function() {
+			console.log(mixins.WindowEvents);
 			return _.pick(this.getWindowSize(), "width");
 		},
 		render: function() {
@@ -381,3 +314,5 @@ app.gui = {
 		}
 	})
 }
+
+module.exports = gui;

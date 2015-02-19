@@ -1,4 +1,4 @@
 node_modules/**
-bower_components/**
-assets/scripts/gui.js
+assets/scripts/interface/gui.js
 assets/scripts/debug.js
+assets/bundle.js

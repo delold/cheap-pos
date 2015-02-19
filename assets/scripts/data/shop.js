@@ -1,7 +1,7 @@
-var app = app || {};
-app.shop = app.shop || {};
+// var app = app || {};
+var Backbone = require("backbone");
 
-app.shop.ShopItem = Backbone.Model.extend({
+var ShopItem = Backbone.Model.extend({
 	defaults: {
 		"price": 0,
 		"ammount": 1
@@ -11,11 +11,11 @@ app.shop.ShopItem = Backbone.Model.extend({
 	}
 });
 
-app.shop.ShopCart = Backbone.Collection.extend({
-	model: app.shop.ShopItem
-});
+var ShopCart = Backbone.Collection.extend({
+	model: ShopItem 
+}); 
 
-app.shop.ShopCustomer = Backbone.Model.extend({
+var ShopCustomer = Backbone.Model.extend({
 	defaults: {
 		"itemList": [], 
 		"screen": "0",
@@ -54,15 +54,15 @@ app.shop.ShopCustomer = Backbone.Model.extend({
 		this.set("mode", mode);
 	},
 	initialize: function() {
-		this.set("itemList", new app.shop.ShopCart(this.get("itemList")))
+		this.set("itemList", new ShopCart(this.get("itemList")))
 	}
 });
 
-app.shop.ShopCustomerCollection = Backbone.Collection.extend({
-	model: app.shop.ShopCustomer
+var ShopCustomerCollection = Backbone.Collection.extend({
+	model: ShopCustomer
 });
 
-app.shop.Shop = Backbone.Model.extend({
+var Shop = Backbone.Model.extend({
 	defaults: {
 		"customerList": [],
 		"activeCustomer": 0
@@ -76,7 +76,14 @@ app.shop.Shop = Backbone.Model.extend({
 		return this.get("customerList").at(customer);
 	},
 	initialize: function() {
-        this.set("customerList", new app.shop.ShopCustomerCollection(this.get("customerList")))
+        this.set("customerList", new ShopCustomerCollection(this.get("customerList")))
     }
 });
 
+module.exports = {
+	"Shop": Shop,
+	"ShopCustomerCollection": ShopCustomerCollection,
+	"ShopCustomer": ShopCustomer,
+	"ShopCart": ShopCart,
+	"ShopItem": ShopItem
+}

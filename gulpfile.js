@@ -6,6 +6,26 @@ var notify = require("gulp-notify");
 var mocha = require("gulp-mocha");
 var react = require("gulp-react");
 
+var _ = require("underscore");
+
+var source = require("vinyl-source-stream");
+var watchify = require("watchify");
+var browserify = require("browserify");
+
+var bundler = watchify(browserify("./assets/scripts/app.js", _.extend(watchify.args, {ignoreMissing: "nw.gui", debug: true})));
+
+bundler.on('update', bundle);
+
+function bundle() {
+	return plumber(notify.onError("Error: <%= error.message %>"))
+		.pipe(bundler.bundle())
+		.pipe(source("bundle.js"))
+		.pipe(gulp.dest("./assets"))
+		.pipe(livereload());
+}
+
+gulp.task("js", bundle);
+
 
 gulp.task("styles", function() {
 	return gulp.src("./assets/styles/*.less")
@@ -16,30 +36,25 @@ gulp.task("styles", function() {
 });
 
 gulp.task("react", function() {
-	return gulp.src("./assets/scripts/*.jsx")
+	return gulp.src("./assets/scripts/**/*.jsx")
 		.pipe(plumber(notify.onError("Error: <%= error.message %>")))
 		.pipe(react())
 		.pipe(gulp.dest("./assets/scripts"))
-		.pipe(livereload());
 });
 
-gulp.task("scripts", function() {
-	return gulp.src("./assets/scripts/*.js")
-		.pipe(plumber(notify.onError("Error: <%= error.message %>")))
-		.pipe(livereload());
-});
-
-gulp.task("html", function() {
+gulp.task("html", function() { 
 	return gulp.src("./*.html")
 		.pipe(plumber(notify.onError("Error: <%= error.message %>")))
 		.pipe(livereload());
 });
 
+
+
 gulp.task("watch", function() {
 	livereload.listen();
+	bundle();
 	gulp.watch("./assets/styles/*.less", ["styles"]);
-	gulp.watch("./assets/scripts/*.js", ["scripts"]);
-	gulp.watch("./assets/scripts/*.jsx", ["react"]);
+	gulp.watch("./assets/scripts/**/*.jsx", ["react"]);
 	gulp.watch("./*.html", ["html"]);
 });
 
