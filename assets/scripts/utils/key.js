@@ -25,7 +25,8 @@ module.exports = {
 		} else if (key == 9) {
 			return new this.Press(this.tab);
 		}
-		console.info(key);
+
+		// console.info(key);
 
 		return new this.Press(this.unknown);
 	},

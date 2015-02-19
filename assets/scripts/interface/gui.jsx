@@ -98,18 +98,25 @@ gui = {
 					text = "";
 				}
 			} else if (type == Key.cash) {
-				mode = "total";
-				text = this.props.customer.getTotal();
+				if(this.props.customer.getTotal() != 0) {
+					mode = "total";
+					text = this.props.customer.getTotal();
+				}
 			} else if (type == Key.nudge || type == Key.delete) {
-				var selected = this.props.customer.get("selected");
+				var selected = this.props.customer.get("selectedItem");
 				if(selected < 0)
 					return;
 
+				
 				var item = this.props.customer.getItem(selected);
 				var nudge = (type == Key.delete) ? 0 : item.get("ammount")+value;
 
+
 				if(nudge <= 0) {
 					this.props.customer.removeItem(selected);
+
+					if(selected+1 >= this.props.customer.getCount()) 
+						this.props.customer.set("selectedItem", this.props.customer.getCount()-1)
 				} else {
 					item.set("ammount", nudge);
 				}

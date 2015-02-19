@@ -12,20 +12,12 @@ var source = require("vinyl-source-stream");
 var watchify = require("watchify");
 var browserify = require("browserify");
 
-var bundler = watchify(browserify("./assets/scripts/app.js", _.extend(watchify.args, {ignoreMissing: "nw.gui", debug: true})));
+var runNw = function() {
+	var path = require("nodewebkit").findpath();
+	var spawn = require('child_process').spawn;
 
-bundler.on('update', bundle);
-
-function bundle() {
-	return plumber(notify.onError("Error: <%= error.message %>"))
-		.pipe(bundler.bundle())
-		.pipe(source("bundle.js"))
-		.pipe(gulp.dest("./assets"))
-		.pipe(livereload());
-}
-
-gulp.task("js", bundle);
-
+	spawn(path, [__dirname]);
+};
 
 gulp.task("styles", function() {
 	return gulp.src("./assets/styles/*.less")
@@ -48,28 +40,40 @@ gulp.task("html", function() {
 		.pipe(livereload());
 });
 
+gulp.task("watchify", function(cb) {
+	var args = _.extend(watchify.args, {debug: true});
+	var bundler = watchify(browserify("./assets/scripts/app.js", args));
 
+	function rebundle(cb) {
+		cb = typeof cb === "function" ? cb : function() { return false; };
+		return plumber(notify.onError("Error: <%= error.message %>"))
+			.pipe(bundler.bundle())
+			.pipe(source("bundle.js"))
+			.pipe(gulp.dest("./assets"))
+			.on("finish", cb)
+			.pipe(livereload());
+	}
 
-gulp.task("watch", function() {
+	bundler.on('update', rebundle);
+	rebundle(cb);
+	// return rebundle(cb);
+});
+
+gulp.task("watch", ["watchify"], function() {
 	livereload.listen();
-	bundle();
 	gulp.watch("./assets/styles/*.less", ["styles"]);
 	gulp.watch("./assets/scripts/**/*.jsx", ["react"]);
 	gulp.watch("./*.html", ["html"]);
 });
 
-gulp.task("run", function() {
-	var path = require("nodewebkit").findpath();
-	var spawn = require('child_process').spawn;
-
-	spawn(path, [__dirname]);
-});
-
+gulp.task("run", runNw);
 
 gulp.task("test", function() {
 	return gulp.src("test/*.js").pipe(mocha());
 });
 
-gulp.task("dev", ["run", "watch"]);
+gulp.task("dev", ["watch"], function() {
+	runNw();
+});
 
 gulp.task("default", ["dev"]);

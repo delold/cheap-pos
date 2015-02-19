@@ -18,7 +18,7 @@ var ShopCart = Backbone.Collection.extend({
 var ShopCustomer = Backbone.Model.extend({
 	defaults: {
 		"itemList": [], 
-		"screen": "0",
+		"screen": "",
 		"selectedItem": -1,
 		"mode": "add"
 	},
@@ -26,7 +26,7 @@ var ShopCustomer = Backbone.Model.extend({
 		return this.get("itemList").indexOf(this.get("itemList").add(shopItem));
 	},
 	getItem: function(position) {
-		position = position || this.get("selectedItem");
+		position = isFinite(position) ? position : this.get("selectedItem");
 
 		return this.get("itemList").at(position);
 	},
@@ -64,16 +64,26 @@ var ShopCustomerCollection = Backbone.Collection.extend({
 
 var Shop = Backbone.Model.extend({
 	defaults: {
-		"customerList": [],
+		"customerList": [{"itemList":[],"screen":""}],
 		"activeCustomer": 0
 	},
 	addCustomer: function(customer) {
 		this.get("customerList").add(customer);
 	},
-	getCustomer: function(customer) {
-		customer = customer || this.get("activeCustomer");
+	getCustomer: function(number) {
+		number = isFinite(number) ? number : this.get("activeCustomer");
 
-		return this.get("customerList").at(customer);
+		return this.get("customerList").at(number);
+	},
+	setCurrent: function(number) {
+		this.set("activeCustomer", number);
+	},
+	removeCustomer: function(number) {
+		var el = this.get("customerList").remove(this.getCustomer(number));
+
+		if(this.get("activeCustomer")+1 >= this.get("customerList").length) {
+			this.set("activeCustomer", this.get("customerList").length-1);
+		}
 	},
 	initialize: function() {
         this.set("customerList", new ShopCustomerCollection(this.get("customerList")))
