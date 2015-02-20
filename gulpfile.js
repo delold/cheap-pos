@@ -16,7 +16,9 @@ var runNw = function() {
 	var path = require("nodewebkit").findpath();
 	var spawn = require('child_process').spawn;
 
-	spawn(path, [__dirname]);
+	spawn(path, [__dirname]).on("exit", function() {
+		process.exit();
+	});
 };
 
 gulp.task("styles", function() {
