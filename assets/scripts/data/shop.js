@@ -1,4 +1,3 @@
-// var app = app || {};
 var Backbone = require("backbone");
 
 var ShopItem = Backbone.Model.extend({
@@ -18,35 +17,47 @@ var ShopCart = Backbone.Collection.extend({
 var ShopCustomer = Backbone.Model.extend({
 	defaults: {
 		"itemList": [], 
-		"screen": "",
 		"selectedItem": -1,
-		"mode": "add"
+		"payment": 0,
+		"screen": "",
+		"mode": "add",
+		"negativeCount": 0
 	},
 	addItem: function(shopItem) {
-		return this.get("itemList").indexOf(this.get("itemList").add(shopItem));
+		var pos = this.get("itemList").length - ((shopItem.get("price") > 0) ? this.get("negativeCount") : 0);
+		if(shopItem.get("price") < 0) {
+			this.set("negativeCount", this.get("negativeCount")+1);
+		}
+
+		this.get("itemList").add(shopItem, {"at": pos});
+		return pos;
 	},
 	getItem: function(position) {
 		position = isFinite(position) ? position : this.get("selectedItem");
-
 		return this.get("itemList").at(position);
 	},
 	removeItem: function(position) {
-		return this.get("itemList").remove(this.getItem(position));
+		var item = this.getItem(position);
+		
+		if(item.get("price") < 0) {
+			this.set("negativeCount", this.get("negativeCount")-1);
+		}
+		return this.get("itemList").remove(item);
 	},
 	getCount: function() {
 		return this.get("itemList").length;
-	},
-	getTotal: function() {
-		return this.get("itemList").reduce(function(memo, item) {
-			return memo + item.get("ammount")*item.get("price");
-		}, 0);
 	},
 	getItems: function() {
 		return this.get("itemList");
 	},
 	clearItems: function() {
-		this.set("itemList", []);
-		this.initialize();
+		this.get("itemList").reset([]);
+		this.set("selectedItem", -1);
+	},
+	getTotal: function() {
+		return this.get("itemList").reduce(function(memo, item) {
+			return memo + item.get("ammount")*item.get("price");
+		}, 0);
 	},
 	setScreen: function(screen, mode) {
 		mode = mode || "add";

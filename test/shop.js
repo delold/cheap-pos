@@ -137,6 +137,7 @@ describe("shop.js", function() {
 
 			expect(customer.getItems()).to.deep.equal(customer.get("itemList"));
 			expect(customer.getCount()).to.equal(0);
+			expect(customer.get("selectedItem")).to.equal(-1);
 		});
 
 		it("should get total correctly", function() {
