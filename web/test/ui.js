@@ -1,7 +1,7 @@
 var expect = require("chai").expect;
 
 var npmPath = require("npm-path");
-var nodeWebkit = require("nodewebkit");
+var nodeWebkit = require("nw");
 var path = require("path");
 
 var webdriverio = require("webdriverio");

@@ -20,7 +20,7 @@ module.exports = {
 			return new this.Press(this.delete);
 		} else if (key == 27) {
 			return new this.Press(this.menu);
-		} else if (key == 34) {
+		} else if (key == 33) {
 			return new this.Press(this.cash);
 		} else if (key == 9) {
 			return new this.Press(this.tab);

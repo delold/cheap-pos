@@ -42,22 +42,50 @@ gui = {
 			listenTo(props.customer.get("itemList"), "all");
 	 	},
 		render: function() {
+			var customer = this.props.customer;
+	
+			var screen = numberlib.format(customer.get("screen"));
+			var total = customer.getTotal();
+
+			var decimalClass = (customer.get("screen").indexOf(".") > -1) ? "decimal active" : "decimal";
+
+			var ret = customer.get("mode") == "cash" ? customer.get("payment") : Math.abs(total - Number.parseFloat(customer.get("payment")));
+			var ret_class = "return " + (customer.get("mode") == "cash" ? "payment" : (total - Number.parseFloat(customer.get("payment")) <= 0 ? "met" : ""));
+
+			var cx = React.addons.classSet;
+			var display = cx({
+				"display": true,
+				"add": customer.get("mode") == "add" && (screen != "0.00" || total != 0),
+				"change": ["change", "cash"].indexOf(customer.get("mode")) != -1, 
+				"change-met": true
+			});
+
+			screen = screen.split(".");
+
 			return (
-				<div className="display">
-					<span className="total">{numberlib.format(this.props.customer.get("screen"))}</span>
-					<span className="helper">{numberlib.format(this.props.customer.getTotal())}</span>
+				<div className={display}>
+					<span className="total">{screen[0]}<span className={decimalClass}>.{screen[1]}</span></span>
+					<span className="helper">
+						<span className="sum">{numberlib.format(customer.getTotal())}</span>
+						<span className={ret_class}>{numberlib.format(ret)}</span>
+					</span>
 				</div>
 			);
 		},
-		onKeyPress: function(press) {
-			//TODO: Přepracovat logiku
+		determineAction: function(press) {
 			var text = this.props.customer.get("screen");
 			var mode = this.props.customer.get("mode");
 
 			var type = press.type;
 			var value = press.value;
+			//modes: [add, total, change, cash];
 
-			var Key = keylib;
+			function set(new_text, new_mode) {
+				new_text = typeof new_text === "undefined" ? text : new_text;
+				new_mode = typeof new_mode === "undefined" ? mode : new_mode;
+
+				return {"text": new_text, "mode": new_mode};
+			}
 
 			if(mode == "cash" || mode == "total") {
 				text = "";
@@ -65,26 +93,38 @@ gui = {
 				if(mode == "cash") {
 					mode = "add";
 					this.props.customer.clearItems();
-					return this.props.customer.setScreen(text, mode);
+
+					return set(text, mode);
 				} else if(mode == "total") {
 					mode = "change";
 				}
 			}
 
-			if([keylib.number, keylib.backspace, keylib.dot].indexOf(press.type) !== -1) {
-				if(type == Key.number) {
-					if (text.indexOf(".") > 0 && text.split(".")[1].length >= 2) 
-						return;
+			if (type == keylib.cash) {
+				
+				if(this.props.customer.getTotal() != 0) {
+					return set(this.props.customer.getTotal(), "total");
+				}
+
+			} else if([keylib.number, keylib.backspace, keylib.dot].indexOf(press.type) !== -1) {
+				if(type == keylib.number) {
+					if (text.indexOf(".") >= 0 && text.split(".")[1].length >= 2) {
+						return set();
+					}
 					text += value;
-				} else if (type == Key.backspace) {
+				} else if (type == keylib.backspace) {
 					text = text.slice(0, -1);
 				} else if (text.indexOf(".") === -1) {
 					//TODO: upravit funkci desetinné čárky
 					text += (text.length <= 0 ? "0" : "") + ".";
 				}
-			} else if (type == Key.enter) {
+
+				if(mode == "change") {
+					this.props.customer.set("payment", text);
+				}
+			} else if (type == keylib.enter) {
 				if(!_.isFinite(text) || Number.parseFloat(text) <= 0) {
-					return;
+					return set();
 				}
 
 				if(mode == "change") {
@@ -97,32 +137,34 @@ gui = {
 					
 					text = "";
 				}
-			} else if (type == Key.cash) {
-				if(this.props.customer.getTotal() != 0) {
-					mode = "total";
-					text = this.props.customer.getTotal();
-				}
-			} else if (type == Key.nudge || type == Key.delete) {
+			} else if (type == keylib.nudge || type == keylib.delete) {
 				var selected = this.props.customer.get("selectedItem");
-				if(selected < 0)
-					return;
 
+				if(selected < 0) {
+					return set();
+				}
 				
 				var item = this.props.customer.getItem(selected);
-				var nudge = (type == Key.delete) ? 0 : item.get("ammount")+value;
+				var nudge = (type == keylib.delete) ? 0 : item.get("ammount")+value;
 
 
 				if(nudge <= 0) {
 					this.props.customer.removeItem(selected);
 
-					if(selected+1 >= this.props.customer.getCount()) 
+					if(selected+1 >= this.props.customer.getCount()) {
 						this.props.customer.set("selectedItem", this.props.customer.getCount()-1)
+					}
 				} else {
 					item.set("ammount", nudge);
 				}
 			} 
 
-			this.props.customer.setScreen(text, mode);
+			return set(text,mode);
+		},
+		onKeyPress: function(press) {
+			//TODO: Přepracovat logiku
+			var action = this.determineAction(press);
+			this.props.customer.setScreen(action["text"], action["mode"]);
 		}
 	}),
 	Content: React.createClass({
@@ -138,7 +180,7 @@ gui = {
 	ShopList: React.createClass({
 		mixins: [mixins.KeyboardEvents, mixins.BackboneEvents],
 		getBackboneState: function (props) {
-			return {customer: props.customer.toJSON()};
+			return {customer: props.customer.toJSON(), itemList: props.customer.get("itemList").toJSON()};
 		},
 		watchBackboneProps: function (props, listenTo) {
 			listenTo(props.customer, 'all');
@@ -200,7 +242,6 @@ gui = {
 	StatsChart: React.createClass({
 		mixins: [mixins.WindowEvents],
 		getInitialState: function() {
-			console.log(mixins.WindowEvents);
 			return _.pick(this.getWindowSize(), "width");
 		},
 		render: function() {

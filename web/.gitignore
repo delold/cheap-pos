@@ -1,0 +1,3 @@
+node_modules/**
+assets/scripts/interface/gui.js
+assets/bundle.js

@@ -12,8 +12,10 @@ var source = require("vinyl-source-stream");
 var watchify = require("watchify");
 var browserify = require("browserify");
 
+var nodemon = require("gulp-nodemon");
+
 var runNw = function() {
-	var path = require("nodewebkit").findpath();
+	var path = require("nw").findpath();
 	var spawn = require('child_process').spawn;
 
 	spawn(path, [__dirname]).on("exit", function() {
@@ -76,6 +78,10 @@ gulp.task("test", function() {
 
 gulp.task("dev", ["watch"], function() {
 	runNw();
+});
+
+gulp.task("server", function() {
+	nodemon({ script: 'backend/server.js' });
 });
 
 gulp.task("default", ["dev"]);

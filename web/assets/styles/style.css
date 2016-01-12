@@ -41,7 +41,7 @@ body {
   transition: top 0.6s;
 }
 .content .list .item.active {
-  background: #6eefff !important;
+  background: #FF6E40 !important;
 }
 .content .list .item,
 .content .list .label {
@@ -49,11 +49,12 @@ body {
   background: white;
   padding: 0px 30px;
   display: flex;
-  line-height: 60px;
+  line-height: 70px;
+  font-size: 22px;
 }
 .content .list .item .poradi,
 .content .list .label .poradi {
-  flex-basis: 40px;
+  flex-basis: 50px;
   font-size: 20px;
 }
 .content .list .item .cena,
@@ -68,8 +69,10 @@ body {
 }
 .content .list .label {
   line-height: 40px;
-  font-size: 20px;
-  background: #E91E63;
+  font-size: 15px;
+  background: #64B5F6;
+  text-transform: uppercase;
+  font-variant: small-caps;
   color: white;
   top: 0;
 }
@@ -85,7 +88,7 @@ body {
 }
 .content .toolbar {
   width: 100%;
-  background: #3F51B5;
+  background: #2196F3;
   line-height: 60px;
   font-size: 20px;
   color: white;
@@ -102,7 +105,7 @@ body {
   float: left;
   margin: 15px 0px;
   margin-left: 21px;
-  margin-right: 18px;
+  margin-right: 28px;
   position: relative;
 }
 .content .toolbar .hamburger:before,
@@ -146,36 +149,71 @@ body {
   opacity: 0.7;
   cursor: pointer;
 }
-.sidebar .display:nth-child(2) .total {
-  background: #8BC34A;
-}
-.sidebar .display:nth-child(3) .total {
-  background: #9C27B0;
-}
-.sidebar .display:nth-child(4) .total {
-  background: #F44336;
-}
 .sidebar .display .total {
-  background: #00BCD4;
+  background: #FF3D00;
   line-height: 10vw;
   font-size: 5vw;
   color: white;
   padding: 0px 20px;
   display: block;
+  -webkit-transition: all 0.3s;
+  -o-transition: all 0.3s;
+  transition: all 0.3s;
+}
+.sidebar .display.change-met .total {
+  background: #64DD17;
+}
+.sidebar .display .total .decimal {
+  opacity: 0;
+  font-size: 3vw;
+  line-height: 0;
+  max-width: 0;
+  display: inline-block;
+  transition: all 0.3s;
+}
+.sidebar .display .total .decimal.active {
+  font-size: 5vw;
+  max-width: 10vw;
+  opacity: 1;
 }
 .sidebar .display .helper {
   display: block;
   width: 100%;
   background: white;
   color: black;
-  line-height: 50px;
-  padding: 0px 20px;
+  line-height: 40px;
   font-size: 20px;
-  height: 50px;
+  height: 0px;
+  padding: 0px 20px;
   overflow: hidden;
+  transition: all 0.3s;
 }
-.sidebar .display .helper:before {
-  content: "Celkem: ";
+.sidebar .display.add .helper,
+.sidebar .display.change .helper {
+  padding: 5px 20px;
+}
+.sidebar .display.add .helper {
+  height: 50px;
+}
+.sidebar .display.change .helper {
+  height: 90px;
+}
+.sidebar .display .helper > * {
+  display: block;
+}
+.sidebar .display .helper > *:before {
   float: left;
   opacity: 0.3;
+}
+.sidebar .display .helper > .sum:before {
+  content: "Celkem:";
+}
+.sidebar .display .helper > .return.met:before {
+  content: "Vrátit:";
+}
+.sidebar .display .helper > .return.payment:before {
+  content: "Zaplaceno:";
+}
+.sidebar .display .helper > .return:before {
+  content: "Zbývá:";
 }
