@@ -139,8 +139,9 @@ class Cashier:
 		widget.bind("<Delete>", lambda event: self.onKey(FakeKey("delete")))
 		widget.bind("<Home>", lambda event: self.onKey(FakeKey("home")))
 
-	def checkout(self):
-		self.httpClient.send("checkout", {"total": self.getCartSum(), "date": int(round(time.time() * 1000)), "items": self.cart})
+	def checkout(self, paid):
+		total = self.getCartSum()
+		self.httpClient.send("checkout", {"total": total, "date": int(round(time.time() * 1000)), "items": self.cart, "paid": paid, "returned": paid - total})
 
 	def addItem(self, price, amount = 1, discount = False):
 		display = ""
@@ -278,8 +279,9 @@ class Cashier:
 		elif event.char == "\r" and len(self.buffer) > 0:
 			if self.mode == "return":
 				self.mode = "input"
+				self.checkout(self.getValue())
+
 				self.buffer = self.getValue() - self.getCartSum()
-				self.checkout()
 				self.clearMode = 2
 				self.setSelection("")
 			else:
