@@ -11,6 +11,7 @@ class Server {
 	constructor(port) {
 		this.port = port;
 		this.db = [];
+		this.itemdb = null;
 		// this.wss = new WSServer({port: port});
 		// this.wss.on("connection", this.onWSConnection.bind(this));
 		// this.wss.on("error", function(err) {
@@ -79,7 +80,7 @@ class Server {
 			case "open":
 				break;
 			case "total":
-				var selected = self.retrieveDatabase(data);
+				var selected = self.retrieveLogDatabase(data);
 
 				if(!self.isDatabase(selected)) {
 					return self.send(client, "status", {"status": "fail", "hash": null, "error": "no db found"});
@@ -100,7 +101,7 @@ class Server {
 
 				break;
 			case "checkout":
-				var selected = self.retrieveDatabase(self.getTime(data.date), true);
+				var selected = self.retrieveLogDatabase(self.getTime(data.date), true);
 				
 				if(!self.isDatabase(selected)) {
 					return self.send(client, "status", {"status": "fail", "hash": null, "error": "no db found"});
@@ -115,7 +116,90 @@ class Server {
 				});
 
 				break;
+			case "additem":
+				self.retrieveItemDatabase().insert(data, (err, newDoc) => {
+					if (err !== null) {
+						self.send(client, "status", {"status": "fail", "hash": null, "error": err});
+					} else {
+						self.send(client, "status", {"status": "ok", "hash": self.getHash(newDoc)});
+					}
+				});
+			case "getitem":
+				let db = self.retrieveItemDatabase();
+
+				if(data.type !== undefined && ["upc", "name", "id"].indexOf(data.type) >= 0) {
+					if (data.query === undefined) {
+						return self.send(client, "status", {"status": "fail", "hash": null, "error": "query not defined"});
+					}
+
+					let querytype = data.type === "id" ? "_id" : data.type;
+
+					db.find({[querytype]: data.query}, (err, docs) => {
+						let result = docs === null || docs === undefined ? [] : docs;
+						self.send(client, "getitem", {"count": result.length, "result": result});
+					});
+
+				} else {
+					self.send(client, "status", {"status": "fail", "hash": null, "error": "query type not defined or not supported"});
+				}
+
+				break;
+			case "removeitem":
+				if (data.id === undefined) {
+					return self.send(client, "status", {"status": "fail", "hash": null, "error": "id not defined"});
+				}
+
+				self.retrieveItemDatabase().remove({"_id": data.id}, {}, (err, numRemoved) => {
+					if (numRemoved <= 0) {
+						self.send(client, "status", {"status": "fail", "hash": null, "err": "empty"});
+					} else {
+						self.send(client, "status", {"status": "ok", "hash": numRemoved});
+					}
+				});
+
+				break;
+			case "upcmap":
+				let items = self.retrieveItemDatabase().find({}, (err, docs) => {
+					let list = docs === null || docs === undefined ? [] : docs;
+					let result = {};
+					list.forEach((item) => {
+						let upc = item.upc === null || item.upc === undefined ? -1 : item.upc;
+						if(result[upc] === undefined) {
+							result[upc] = [];
+						}
+						result[upc].push(item._id);
+					});
+
+					self.send(client, "upcmap", {"count": Object.keys(result).length, "result": result});
+				});
+
+				break;
+			case "namemap":
+				self.retrieveItemDatabase().find({}, (err, docs) => {
+					let list = docs === null || docs === undefined ? [] : docs;
+					let result = docs.map((item) => {
+						return {"name":item.name, "id": item._id};
+					});
+					self.send(client, "namemap", {"count": result.length, "result": result});
+				});
+
+				break;
+			case "getitems":
+				self.retrieveItemDatabase().find({}, (err, docs) => {
+					docs = docs === null || docs === undefined ? [] : docs;
+					self.send(client, "getitems", {"count": docs.length, "result": docs});
+				});
+
+				break;
 		}
+	}
+
+	retrieveItemDatabase() {
+		if(this.itemdb === null) {
+			this.itemdb = new Datastore({filename: path.join("databases", "items.db"), autoload: true});
+		}
+
+		return this.itemdb;
 	}
 
 	onWSConnection(ws) {
@@ -135,7 +219,7 @@ class Server {
 		});
 	}
 
-	retrieveDatabase(key, cache) {
+	retrieveLogDatabase(key, cache) {
 		let selected = null;
 		cache = cache === undefined ? false : cache;
 
