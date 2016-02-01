@@ -91,9 +91,7 @@ class Server {
 						self.send(client, "status", {"status": "fail", "hash": null, "error": err});
 					} else {
 						var count = docs.length;
-						var total = docs.reduce((sum, doc) => {
-							return sum + doc.total;
-						}, 0);
+						var total = docs.reduce((sum, doc) => sum + doc.total, 0);
 
 						self.send(client, "total", {"count": count, "total": total});
 					}
@@ -177,9 +175,7 @@ class Server {
 			case "namemap":
 				self.retrieveItemDatabase().find({}, (err, docs) => {
 					let list = docs === null || docs === undefined ? [] : docs;
-					let result = docs.map((item) => {
-						return {"name":item.name, "id": item._id};
-					});
+					let result = docs.map((item) => {"name":item.name, "id": item._id});
 					self.send(client, "namemap", {"count": result.length, "result": result});
 				});
 
@@ -204,11 +200,6 @@ class Server {
 
 	onWSConnection(ws) {
 		let self = this;
-
-		setInterval(() => {
-			self.send(ws, "lol", {"Hello": "Hi"});
-		}, 1000)
-
 		ws.on("message", (message) => {
 			try {
 				let data = JSON.parse(message);
