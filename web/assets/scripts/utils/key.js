@@ -6,7 +6,7 @@ module.exports = {
 		//TODO: find better ways to map
 		if ((key >= 48 && key <= 57) || (key >= 96 && key <= 105)){
 		    return new this.Press(this.number, key-48 * ((key >= 96 && key <= 105)+1));
-		} else if (key == 13) {
+		} else if (key == 13) { 
 			return new this.Press(this.enter);
 		} else if (key >= 107 && key <= 109) {
 			return new this.Press(this.nudge, (key == 107) ? 1 : -1); 

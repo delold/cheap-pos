@@ -1,5 +1,57 @@
 var Backbone = require("backbone");
 
+var Item = Backbone.Model.extend({
+	defaults: {
+		id: 0,	
+		price: 0,
+		total: 0,
+		amount: 1,
+		barcode: 0,
+		discount: false,
+		name: ""
+	},
+	incrementAmount: function(diff) {
+		this.set("amount", this.get("amount") + diff);
+		this.set("total", this.get("price") * this.get("amount"));
+	}
+});
+
+var ItemList = Backbone.Collection.extend({ model: Item });
+
+var CustomerEntry = Backbone.Model.extend({
+	defaults: {
+		date: 0,
+		total: 0,
+		paid: 0,
+		returned: 0,
+		items: []
+	},
+	initialize: function() {
+		this.set("items", new ItemList(this.get("items")))
+	}
+});
+
+var App = Backbone.Model.extend({
+	defaults: {
+		mode: "input",
+		reverseMode: false,
+		clearMode: 0,
+		buffer: "",
+		customer: null
+	},
+	initialize: function() {
+		var customer = this.get("customer");
+
+		if (customer == null) {
+			customer = new CustomerEntry();
+		} else if (!(customer instanceof Backbone.Model)) {
+			customer = new CustomerEntry(customer);
+		}
+
+		this.set("customer", customer);
+	}
+});
+
 var ShopItem = Backbone.Model.extend({
 	defaults: {
 		"price": 0,
@@ -10,9 +62,7 @@ var ShopItem = Backbone.Model.extend({
 	}
 });
 
-var ShopCart = Backbone.Collection.extend({
-	model: ShopItem 
-}); 
+var ShopCart = Backbone.Collection.extend({ model: ShopItem }); 
 
 var ShopCustomer = Backbone.Model.extend({
 	defaults: {
@@ -69,9 +119,7 @@ var ShopCustomer = Backbone.Model.extend({
 	}
 });
 
-var ShopCustomerCollection = Backbone.Collection.extend({
-	model: ShopCustomer
-});
+var ShopCustomerCollection = Backbone.Collection.extend({ model: ShopCustomer });
 
 var Shop = Backbone.Model.extend({
 	defaults: {

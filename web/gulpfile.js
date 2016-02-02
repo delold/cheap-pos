@@ -80,8 +80,4 @@ gulp.task("dev", ["watch"], function() {
 	runNw();
 });
 
-gulp.task("server", function() {
-	nodemon({ script: 'backend/server.js' });
-});
-
 gulp.task("default", ["dev"]);

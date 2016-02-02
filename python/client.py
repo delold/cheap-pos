@@ -53,7 +53,6 @@ class Cashier:
 		# data related stuff
 		self.buffer = ""
 		self.cart = []
-		self.storage = []
 
 		# ui variables
 		self.mode = "input"
