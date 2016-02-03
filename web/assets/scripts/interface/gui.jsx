@@ -35,7 +35,7 @@ gui = {
 			return {customer: props.shop.getCustomer().toJSON()};
 		},
 		watchBackboneProps: function (props, listenTo) {
-			listenTo(props.shop, 'all');
+			listenTo(props.shop, 'change');
 			// listenTo(props.shop.getCustomer().get("itemList"), "all");
 	 	},
 		render: function() {
@@ -44,7 +44,7 @@ gui = {
 	
 			// var screen = numberlib.format(customer.get("screen"));
 			var screen = shop.getBuffer();
-			var total = customer.getTotal();
+			var total = customer.getCartSum();
 
 			console.log(screen);
 
@@ -67,7 +67,7 @@ gui = {
 			screen = numberlib.format(screen).split(".");
 
 			if (shop.getReverseMode()) {
-				screen += "-";
+				screen[0] = "-"+screen[0];
 			}
 
 			// if len(self.cart) == 0:
@@ -157,16 +157,38 @@ gui = {
 				var mode = this.props.shop.getMode();
 
 				if (mode === "return") {
-					// self.mode = "input"
+					this.props.shop.setMode("input");
 					// self.checkout(self.getValue())
-
-					// self.buffer = self.getValue() - self.getCartSum()
-					// self.clearMode = 2
+					this.props.shop.setBuffer((parseFloat(buffer) - customer.getCartSum()).toString()); // self.buffer = self.getValue() - self.getCartSum()
+					this.props.shop.setClearMode(2);
 					// self.setSelection("")
 				} else {
 					// self.addItem(self.buffer, discount=self.reverseMode)
 					this.props.shop.setReverseMode(false);
 					this.props.shop.setBuffer("");
+				}
+			},
+			pageup: function(event, key) {
+				var customer = this.props.shop.getCustomer();
+				var mode = this.props.shop.getMode();
+
+				if (mode !== "return" && customer.getCount() > 0) {
+					this.props.shop.setMode("return");
+					this.props.shop.setBuffer(customer.getCartSum().toString());
+				// 	self.confirm.state(["disabled"])
+				} else {
+					this.props.shop.setMode("input");
+					this.props.shop.setBuffer("");
+				// 	self.confirm.state(["!disabled"])
+				}
+
+				this.props.shop.setReverseMode(false);
+				this.props.shop.setClearMode(1);
+				// self.buffer = self.getDisplayValue(self.buffer, divider="", dash=",")
+			},
+			home: function(event, key) {
+				if (this.props.shop.getMode() !== "return") {
+					this.props.shop.setReverseMode(!this.props.shop.getReverseMode());
 				}
 			}
 		}

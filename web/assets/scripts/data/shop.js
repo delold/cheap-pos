@@ -47,7 +47,7 @@ var Customer = Backbone.Model.extend({
 	clearItems: function() {
 		this.get("items").reset([]);
 	},
-	getTotal: function() {
+	getCartSum: function() {
 		return this.get("items").reduce(function(memo, item) {
 			return memo + item.get("amount") * item.get("price");
 		}, 0);
