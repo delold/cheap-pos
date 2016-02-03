@@ -6,10 +6,11 @@ var _ = require("underscore");
 mixins = {
 	KeyboardEvents: {
 		componentDidMount: function() {
-			keylib.addListener(this.onKeyPress);
+
+			keylib.addListener(this.onKeyPress, this);
 		},
 		componentWillUnmount: function() {
-			keylib.removeListener(this.onKeyPress);
+			keylib.removeListener(this.onKeyPress, this);
 		}
 	},
 	WindowEvents: {

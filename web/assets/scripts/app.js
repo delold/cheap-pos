@@ -1,16 +1,14 @@
-var data = require("./data/shop");
-var gui = require("./interface/gui");
+var Shop = require("./data/shop");
+var Gui = require("./interface/gui");
+
 var React = require("react");
 
 var key = require("./utils/key");
 
 (function() {
-	var json = JSON.parse('{"customerList":[{"itemList":[],"screen":""}],"activeCustomer":0}');
+	key.setMousetrap(require("mousetrap"));
 
-	var shop = new data.Shop(json);
-	var customer = shop.getCustomer();
-
-	React.render(React.createElement(gui.AppUI, {"shop":shop}), document.body);
-
+	var shop = new Shop.App();
+	React.render(React.createElement(Gui.AppUI, {"shop":shop}), document.body);
 	document.onkeydown = key.onKeyPress;
 })();

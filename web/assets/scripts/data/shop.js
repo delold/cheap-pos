@@ -18,13 +18,39 @@ var Item = Backbone.Model.extend({
 
 var ItemList = Backbone.Collection.extend({ model: Item });
 
-var CustomerEntry = Backbone.Model.extend({
+var Customer = Backbone.Model.extend({
 	defaults: {
 		date: 0,
 		total: 0,
 		paid: 0,
 		returned: 0,
 		items: []
+	},
+	addItem: function(shopItem) {
+		// var pos = this.get("itemList").length - ((shopItem.get("price") > 0) ? this.get("negativeCount") : 0);
+		// this.get("itemList").add(shopItem, {"at": pos});
+		this.get("items").add(shopItem);
+		return pos;
+	},
+	getItem: function(position) {
+		return this.get("items").at(position);
+	},
+	removeItem: function(position) {
+		return this.get("items").remove(this.getItem(position));
+	},
+	getCount: function() {
+		return this.get("items").length;
+	},
+	getItems: function() {
+		return this.get("items");
+	},
+	clearItems: function() {
+		this.get("items").reset([]);
+	},
+	getTotal: function() {
+		return this.get("items").reduce(function(memo, item) {
+			return memo + item.get("amount") * item.get("price");
+		}, 0);
 	},
 	initialize: function() {
 		this.set("items", new ItemList(this.get("items")))
@@ -36,123 +62,37 @@ var App = Backbone.Model.extend({
 		mode: "input",
 		reverseMode: false,
 		clearMode: 0,
-		buffer: "",
+		buffer: "0.00",
 		customer: null
 	},
 	initialize: function() {
 		var customer = this.get("customer");
 
 		if (customer == null) {
-			customer = new CustomerEntry();
+			customer = new Customer();
 		} else if (!(customer instanceof Backbone.Model)) {
-			customer = new CustomerEntry(customer);
+			customer = new Customer(customer);
 		}
 
 		this.set("customer", customer);
-	}
-});
-
-var ShopItem = Backbone.Model.extend({
-	defaults: {
-		"price": 0,
-		"ammount": 1
 	},
-	getTotal: function() {
-		return this.get("price") * this.get("ammount");
-	}
-});
-
-var ShopCart = Backbone.Collection.extend({ model: ShopItem }); 
-
-var ShopCustomer = Backbone.Model.extend({
-	defaults: {
-		"itemList": [], 
-		"selectedItem": -1,
-		"payment": 0,
-		"screen": "",
-		"mode": "add",
-		"negativeCount": 0
+	getCustomer: function() {
+		return this.get("customer");
 	},
-	addItem: function(shopItem) {
-		var pos = this.get("itemList").length - ((shopItem.get("price") > 0) ? this.get("negativeCount") : 0);
-		if(shopItem.get("price") < 0) {
-			this.set("negativeCount", this.get("negativeCount")+1);
-		}
-
-		this.get("itemList").add(shopItem, {"at": pos});
-		return pos;
+	getBuffer: function() {
+		return this.get("buffer");
 	},
-	getItem: function(position) {
-		position = isFinite(position) ? position : this.get("selectedItem");
-		return this.get("itemList").at(position);
+	setBuffer: function(buffer) {
+		this.set("buffer", buffer);
 	},
-	removeItem: function(position) {
-		var item = this.getItem(position);
-		
-		if(item.get("price") < 0) {
-			this.set("negativeCount", this.get("negativeCount")-1);
-		}
-		return this.get("itemList").remove(item);
-	},
-	getCount: function() {
-		return this.get("itemList").length;
-	},
-	getItems: function() {
-		return this.get("itemList");
-	},
-	clearItems: function() {
-		this.get("itemList").reset([]);
-		this.set("selectedItem", -1);
-	},
-	getTotal: function() {
-		return this.get("itemList").reduce(function(memo, item) {
-			return memo + item.get("ammount")*item.get("price");
-		}, 0);
-	},
-	setScreen: function(screen, mode) {
-		mode = mode || "add";
-		this.set("screen", String(screen));
+	setMode: function(mode) {
 		this.set("mode", mode);
 	},
-	initialize: function() {
-		this.set("itemList", new ShopCart(this.get("itemList")))
-	}
-});
-
-var ShopCustomerCollection = Backbone.Collection.extend({ model: ShopCustomer });
-
-var Shop = Backbone.Model.extend({
-	defaults: {
-		"customerList": [{"itemList":[],"screen":""}],
-		"activeCustomer": 0
-	},
-	addCustomer: function(customer) {
-		this.get("customerList").add(customer);
-	},
-	getCustomer: function(number) {
-		number = isFinite(number) ? number : this.get("activeCustomer");
-
-		return this.get("customerList").at(number);
-	},
-	setCurrent: function(number) {
-		this.set("activeCustomer", number);
-	},
-	removeCustomer: function(number) {
-		var el = this.get("customerList").remove(this.getCustomer(number));
-
-		if(this.get("activeCustomer")+1 >= this.get("customerList").length) {
-			this.set("activeCustomer", this.get("customerList").length-1);
-		}
-	},
-	initialize: function() {
-        this.set("customerList", new ShopCustomerCollection(this.get("customerList")))
-    }
 });
 
 module.exports = {
-	"Shop": Shop,
-	"ShopCustomerCollection": ShopCustomerCollection,
-	"ShopCustomer": ShopCustomer,
-	"ShopCart": ShopCart,
-	"ShopItem": ShopItem
+	Item: Item,
+	ItemList: ItemList,
+	Customer: Customer,
+	App: App
 }

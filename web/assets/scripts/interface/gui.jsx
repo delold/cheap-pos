@@ -12,8 +12,8 @@ var gui = {};
 gui = {
 	AppUI: React.createClass({
 		mixins: [mixins.KeyboardEvents],
-		onKeyPress: function(key) {
-			if(key.type == keylib.menu) {
+		onKeyPress: {
+			esc: function() {
 				this.setState({"menu": !this.state.menu});
 			}
 		},
@@ -23,50 +23,52 @@ gui = {
 		render: function() {
 			return <div className={"app" + (this.state.menu ? " active" : "")}>
 				<gui.Content {...this.props} />
-				<gui.Sidebar {...this.props} />
+				<div className="sidebar">
+					<gui.Customer {...this.props} />
+				</div>
 			</div>;
 		}
 	}),
-	Sidebar: React.createClass({
-		render: function() {
-			return <div className="sidebar"><gui.Customer customer={this.props.shop.getCustomer()}/></div>;
-		}
-	}),
 	Customer: React.createClass({
-		mixins: [mixins.KeyboardEvents, mixins.BackboneEvents],
+		// mixins: [mixins.KeyboardEvents, mixins.BackboneEvents],
+		mixins: [mixins.KeyboardEvents],
 		getBackboneState: function (props) {
-			return {customer: props.customer.toJSON()};
+			return {customer: props.shop.getCustomer().toJSON()};
 		},
 		watchBackboneProps: function (props, listenTo) {
-			listenTo(props.customer, 'all');
-			listenTo(props.customer.get("itemList"), "all");
+			listenTo(props.shop.getCustomer(), 'all');
+			listenTo(props.shop.getCustomer().get("itemList"), "all");
 	 	},
 		render: function() {
-			var customer = this.props.customer;
+			var shop = this.props.shop;
+			var customer = shop.getCustomer();
 	
-			var screen = numberlib.format(customer.get("screen"));
+			// var screen = numberlib.format(customer.get("screen"));
+			var screen = shop.getBuffer();
 			var total = customer.getTotal();
+			var decimalClass = (screen.indexOf(".") > -1) ? "decimal active" : "decimal";
 
-			var decimalClass = (customer.get("screen").indexOf(".") > -1) ? "decimal active" : "decimal";
+			// var ret = customer.get("mode") == "cash" ? customer.get("payment") : Math.abs(total - Number.parseFloat(customer.get("payment")));
+			// var ret_class = "return " + (customer.get("mode") == "cash" ? "payment" : (total - Number.parseFloat(customer.get("payment")) <= 0 ? "met" : ""));
 
-			var ret = customer.get("mode") == "cash" ? customer.get("payment") : Math.abs(total - Number.parseFloat(customer.get("payment")));
-			var ret_class = "return " + (customer.get("mode") == "cash" ? "payment" : (total - Number.parseFloat(customer.get("payment")) <= 0 ? "met" : ""));
+			var ret = 0;
+			var ret_class = "return payment";
 
 			var cx = React.addons.classSet;
 			var display = cx({
 				"display": true,
-				"add": customer.get("mode") == "add" && (screen != "0.00" || total != 0),
-				"change": ["change", "cash"].indexOf(customer.get("mode")) != -1, 
+				// "add": customer.get("mode") == "add" && (screen != "0.00" || total != 0),
+				// "change": ["change", "cash"].indexOf(customer.get("mode")) != -1, 
 				"change-met": true
 			});
 
-			screen = screen.split(".");
+			screen = numberlib.format(screen).split(".");
 
 			return (
 				<div className={display}>
 					<span className="total">{screen[0]}<span className={decimalClass}>.{screen[1]}</span></span>
 					<span className="helper">
-						<span className="sum">{numberlib.format(customer.getTotal())}</span>
+						<span className="sum">{numberlib.format(total)}</span>
 						<span className={ret_class}>{numberlib.format(ret)}</span>
 					</span>
 				</div>
@@ -161,10 +163,10 @@ gui = {
 
 			return set(text,mode);
 		},
-		onKeyPress: function(press) {
-			//TODO: Přepracovat logiku
-			var action = this.determineAction(press);
-			this.props.customer.setScreen(action["text"], action["mode"]);
+		onKeyPress: {
+			"0|1|2|3|4|5|6|7|8|9|,": function(event, code) {
+				console.log(code);
+			}
 		}
 	}),
 	Content: React.createClass({
@@ -180,21 +182,19 @@ gui = {
 	ShopList: React.createClass({
 		mixins: [mixins.KeyboardEvents, mixins.BackboneEvents],
 		getBackboneState: function (props) {
-			return {customer: props.customer.toJSON(), itemList: props.customer.get("itemList").toJSON()};
+			return {customer: props.customer.toJSON(), items: props.customer.getItems().toJSON()};
 		},
 		watchBackboneProps: function (props, listenTo) {
 			listenTo(props.customer, 'all');
-			listenTo(props.customer.get("itemList"), "all")
+			listenTo(props.customer.getItems(), "all")
 	 	},
-	 	onKeyPress: function(key) {
-	 		if(key.type == keylib.arrow) {
-	 			var val = this.props.customer.get("selectedItem");
-	 			if(key.value == keylib.arrowTypes.top) {
-	 				val -= 1;
-	 			} else if (key.value == keylib.arrowTypes.bottom) {
-	 				val += 1;
-	 			}
-
+	 	onKeyPress: {
+	 		up: function() {
+	 			var val = this.props.customer.get("selectedItem") - 1;
+	 			this.props.customer.set("selectedItem", Math.min(Math.max(val, 0), this.props.customer.getCount() - 1));
+	 		},
+	 		down: function() {
+	 			var val = this.props.customer.get("selectedItem") + 1;
 	 			this.props.customer.set("selectedItem", Math.min(Math.max(val, 0), this.props.customer.getCount() - 1));
 	 		}
 	 	},
@@ -231,103 +231,10 @@ gui = {
 	}),
 	Toolbar: React.createClass({
 		render: function() {
-			return (<div className="toolbar"><gui.MenuBurger/><gui.Time/><gui.StatsChart /></div>);
-		}
-	}),
-	MenuBurger: React.createClass({
-		render: function() {
-			return <div className="hamburger"><span className="middie" /></div>;
-		}
-	}),
-	StatsChart: React.createClass({
-		mixins: [mixins.WindowEvents],
-		getInitialState: function() {
-			return _.pick(this.getWindowSize(), "width");
-		},
-		render: function() {
-			return <canvas width="662" height="190"></canvas>;
-		},
-		onResize: function() {
-			this.setState(this.getInitialState());
-		},
-		shouldComponentUpdate: function() {
-			this.drawGraph([40, 200, 20, 60, 140, 169, 163, 50]);
-			return false;
-		},
-		componentDidMount: function() {
-			this.shouldComponentUpdate();
-		},
-		drawGraph: function(data) {
-			var canvas = document.getElementsByTagName("canvas")[0];
-
-			canvas.width = this.state.width * 0.6;
-
-
-			var ctx = canvas.getContext("2d");
-			ctx.fillStyle = "rgba(25, 50, 125, 0.5)";
-			ctx.strokeStyle = "rgb(25, 50, 125)";
-			// ctx.setLineDash([5, 15]);
-			ctx.lineWidth = 3;
-
-			var yspace = 10;
-
-			var height = canvas.height - yspace;
-			var width = canvas.width;
-
-
-			var max = _.max(data);
-
-
-			// ctx.beginPath();
-			// ctx.arc(75, 75, 50, 0, 2 * Math.PI);
-			// ctx.stroke();
-			
-
-			
-			ctx.beginPath();
-			ctx.moveTo(0, height+yspace);
-			ctx.lineTo(0, (height+yspace) - (height * (data[0] / max)));
-			data.forEach(function(value, position) {
-				var space = width / (data.length-1);
-				
-				var x1 = position * space;
-				var x2 = (position+1) * space;
-
-				var y1 = (height + yspace) - (height * (data[position] / max));
-				var y2 = (height + yspace) - (height * (data[position+1] / max));
-
-				ctx.bezierCurveTo(x1+(space/2),y1, x1+(space/2),y2 ,x2, y2);
-			});
-			ctx.lineTo(width, height+yspace);
-
-			ctx.closePath();
-			ctx.fill();
-
-			data.forEach(function(value, position) {
-
-				var space = width / (data.length-1);
-				
-				var x1 = position * space;
-				var x2 = (position+1) * space;
-
-				var y1 = (height + yspace) - (height * (data[position] / max));
-				var y2 = (height + yspace) - (height * (data[position+1] / max));
-
-				// ctx.beginPath();
-				// ctx.arc(x1, y1, 5, 0, Math.PI*2);
-				// ctx.fill();
-
-				// ctx.beginPath();
-				// ctx.moveTo(x1, y1);
-				// ctx.lineTo(x2, y2);
-				// ctx.stroke();
-
-				ctx.beginPath();
-				ctx.moveTo(x1, y1);
-				ctx.bezierCurveTo(x1+(space/2),y1, x1+(space/2),y2 ,x2, y2);
-
-				ctx.stroke();
-			});
+			return (<div className="toolbar">
+				<div className="hamburger"><span className="middie" /></div>
+				<gui.Time/>
+			</div>);
 		}
 	}),
 	Time: React.createClass({
