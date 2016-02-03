@@ -30,14 +30,13 @@ gui = {
 		}
 	}),
 	Customer: React.createClass({
-		// mixins: [mixins.KeyboardEvents, mixins.BackboneEvents],
-		mixins: [mixins.KeyboardEvents],
+		mixins: [mixins.KeyboardEvents, mixins.BackboneEvents],
 		getBackboneState: function (props) {
 			return {customer: props.shop.getCustomer().toJSON()};
 		},
 		watchBackboneProps: function (props, listenTo) {
-			listenTo(props.shop.getCustomer(), 'all');
-			listenTo(props.shop.getCustomer().get("itemList"), "all");
+			listenTo(props.shop, 'all');
+			// listenTo(props.shop.getCustomer().get("itemList"), "all");
 	 	},
 		render: function() {
 			var shop = this.props.shop;
@@ -46,6 +45,9 @@ gui = {
 			// var screen = numberlib.format(customer.get("screen"));
 			var screen = shop.getBuffer();
 			var total = customer.getTotal();
+
+			console.log(screen);
+
 			var decimalClass = (screen.indexOf(".") > -1) ? "decimal active" : "decimal";
 
 			// var ret = customer.get("mode") == "cash" ? customer.get("payment") : Math.abs(total - Number.parseFloat(customer.get("payment")));
@@ -64,6 +66,36 @@ gui = {
 
 			screen = numberlib.format(screen).split(".");
 
+			if (shop.getReverseMode()) {
+				screen += "-";
+			}
+
+			// if len(self.cart) == 0:
+			// 	self.confirm.config(text="Checkout")
+			// 	self.confirm.state(["disabled"]) 
+			// else:
+			// 	label = ""
+			// 	sumview = self.getCartSum()
+			// 	addNumber = True
+
+			// 	if self.mode == "return":
+			// 		label = "Vrátit"
+			// 		if self.clearMode == 1:
+			// 			sumview = -sumview
+			// 		else:
+			// 			sumview = self.getValue() - sumview
+			// 	elif self.clearMode == 2:
+			// 		label = "Smazat"
+			// 		addNumber = False
+			// 	else:
+			// 		label = "Účtovat"
+
+			// 	if addNumber == True:
+			// 		label = label + " " + self.getDisplayValue(sumview, divider=" ", dash=".", suffix=",- Kč")
+
+			// 	self.confirm.config(text=label)
+			// 	self.confirm.state(["!disabled"]) 
+
 			return (
 				<div className={display}>
 					<span className="total">{screen[0]}<span className={decimalClass}>.{screen[1]}</span></span>
@@ -74,98 +106,68 @@ gui = {
 				</div>
 			);
 		},
-		determineAction: function(press) {
-			var text = this.props.customer.get("screen");
-			var mode = this.props.customer.get("mode");
-
-			var type = press.type;
-			var value = press.value;
-			//modes: [add, total, change, cash];
-
-			function set(new_text, new_mode) {
-				new_text = typeof new_text === "undefined" ? text : new_text;
-				new_mode = typeof new_mode === "undefined" ? mode : new_mode;
-
-				return {"text": new_text, "mode": new_mode};
-			}
-
-			if(mode == "cash" || mode == "total") {
-				text = "";
-
-				if(mode == "cash") {
-					mode = "add";
-					this.props.customer.clearItems();
-
-					return set(text, mode);
-				} else if(mode == "total") {
-					mode = "change";
-				}
-			}
-
-			if (type == keylib.cash) {
-				
-				if(this.props.customer.getTotal() != 0) {
-					return set(this.props.customer.getTotal(), "total");
-				}
-
-			} else if([keylib.number, keylib.backspace, keylib.dot].indexOf(press.type) !== -1) {
-				if(type == keylib.number) {
-					if (text.indexOf(".") >= 0 && text.split(".")[1].length >= 2) {
-						return set();
-					}
-					text += value;
-				} else if (type == keylib.backspace) {
-					text = text.slice(0, -1);
-				} else if (text.indexOf(".") === -1) {
-					//TODO: upravit funkci desetinné čárky
-					text += (text.length <= 0 ? "0" : "") + ".";
-				}
-
-				if(mode == "change") {
-					this.props.customer.set("payment", text);
-				}
-			} else if (type == keylib.enter) {
-				if(!_.isFinite(text) || Number.parseFloat(text) <= 0) {
-					return set();
-				}
-
-				if(mode == "change") {
-					text = this.props.customer.getTotal() - Number.parseFloat(text);
-					mode = "cash";
-				} else {
-					var item = new data.ShopItem({"price": Number.parseFloat(text), "ammount": 1});
-					var selected = this.props.customer.addItem(item);
-					this.props.customer.set("selectedItem", selected);
-					
-					text = "";
-				}
-			} else if (type == keylib.nudge || type == keylib.delete) {
-				var selected = this.props.customer.get("selectedItem");
-
-				if(selected < 0) {
-					return set();
-				}
-				
-				var item = this.props.customer.getItem(selected);
-				var nudge = (type == keylib.delete) ? 0 : item.get("ammount")+value;
-
-
-				if(nudge <= 0) {
-					this.props.customer.removeItem(selected);
-
-					if(selected+1 >= this.props.customer.getCount()) {
-						this.props.customer.set("selectedItem", this.props.customer.getCount()-1)
-					}
-				} else {
-					item.set("ammount", nudge);
-				}
-			} 
-
-			return set(text,mode);
-		},
 		onKeyPress: {
-			"0|1|2|3|4|5|6|7|8|9|,": function(event, code) {
-				console.log(code);
+			_before: function(event) {
+				var clearMode = this.props.shop.getClearMode();
+
+				if (clearMode > 0) {
+					if (clearMode == 2) {
+						this.props.shop.getCustomer().clearItems();
+					}
+
+					this.props.shop.setBuffer("");
+					this.props.shop.setClearMode(0);
+				}
+			},
+			"0|1|2|3|4|5|6|7|8|9|,": function(event, key) {
+				var buffer = this.props.shop.getBuffer();
+
+				if (key === ",") {
+					if (buffer.indexOf(".") == -1) {
+						buffer += ".";
+					} 
+				} else {
+					if(buffer.indexOf(".") > -1 && buffer.split(".")[1].length < 2) {
+						buffer += key;				
+					} else if (buffer.indexOf(".") == -1 || (buffer.indexOf(".") > -1 && buffer.split(".")[1].length < 2)) {
+						if (buffer.length <= 0 && key !== "0") {
+							buffer += key;
+						} else if (buffer.split(".")[0].length < 7) {
+							buffer += key;	
+						}
+					}
+				}
+
+				this.props.shop.setBuffer(buffer);
+			},
+			backspace: function(event, key) {
+				var buffer = this.props.shop.getBuffer();
+				if (buffer.length > 0) {
+					buffer = buffer.slice(0, -1);
+
+					if (buffer.slice(-1) === ".") {
+						buffer = buffer.slice(0, -1);
+					}
+
+					this.props.shop.setBuffer(buffer);
+				}
+			},
+			enter: function(event, key) {
+				var buffer = this.props.shop.getBuffer();
+				var mode = this.props.shop.getMode();
+
+				if (mode === "return") {
+					// self.mode = "input"
+					// self.checkout(self.getValue())
+
+					// self.buffer = self.getValue() - self.getCartSum()
+					// self.clearMode = 2
+					// self.setSelection("")
+				} else {
+					// self.addItem(self.buffer, discount=self.reverseMode)
+					this.props.shop.setReverseMode(false);
+					this.props.shop.setBuffer("");
+				}
 			}
 		}
 	}),

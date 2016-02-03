@@ -62,7 +62,7 @@ var App = Backbone.Model.extend({
 		mode: "input",
 		reverseMode: false,
 		clearMode: 0,
-		buffer: "0.00",
+		buffer: "",
 		customer: null
 	},
 	initialize: function() {
@@ -79,15 +79,30 @@ var App = Backbone.Model.extend({
 	getCustomer: function() {
 		return this.get("customer");
 	},
+	getMode: function() {
+		return this.get("mode");
+	},
+	setMode: function(mode) {
+		this.set("mode", mode);
+	},
 	getBuffer: function() {
 		return this.get("buffer");
 	},
 	setBuffer: function(buffer) {
 		this.set("buffer", buffer);
 	},
-	setMode: function(mode) {
-		this.set("mode", mode);
+	getClearMode: function() {
+		return this.get("clearMode");
 	},
+	setClearMode: function(clearMode) {
+		this.set("clearMode", clearMode);
+	},
+	getReverseMode: function() {
+		return this.get("reverseMode");
+	},
+	setReverseMode: function(reverseMode) {
+		this.set("reverseMode", reverseMode);
+	}
 });
 
 module.exports = {
