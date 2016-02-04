@@ -6,6 +6,7 @@ var keylib = require("../utils/key");
 
 var React = require("react/addons");
 var _ = require("underscore");
+var xhr = require("xhr");
 
 var gui = {};
 
@@ -32,25 +33,20 @@ gui = {
 	Customer: React.createClass({
 		mixins: [mixins.KeyboardEvents, mixins.BackboneEvents],
 		getBackboneState: function (props) {
-			return {customer: props.shop.getCustomer().toJSON()};
+			return {customer: props.shop.getCustomer().toJSON(), items: props.shop.getCustomer().getItems().toJSON()};
 		},
 		watchBackboneProps: function (props, listenTo) {
 			listenTo(props.shop, 'change');
-			// listenTo(props.shop.getCustomer().get("itemList"), "all");
+			listenTo(props.shop.getCustomer().getItems(), "all");
 	 	},
 		render: function() {
 			var shop = this.props.shop;
 			var customer = shop.getCustomer();
 	
-			// var screen = numberlib.format(customer.get("screen"));
 			var screen = shop.getBuffer();
 			var total = customer.getCartSum();
 
-
 			var decimalClass = (screen.indexOf(".") > -1) ? "decimal active" : "decimal";
-
-			// var ret = customer.get("mode") == "cash" ? customer.get("payment") : Math.abs(total - Number.parseFloat(customer.get("payment")));
-			// var ret_class = "return " + (customer.get("mode") == "cash" ? "payment" : (total - Number.parseFloat(customer.get("payment")) <= 0 ? "met" : ""));
 
 			var ret = 0;
 			var ret_class = "return payment";
@@ -58,11 +54,17 @@ gui = {
 			var cx = React.addons.classSet;
 			var display = cx({
 				"display": true,
-				// "add": customer.get("mode") == "add" && (screen != "0.00" || total != 0),
-				// "change": ["change", "cash"].indexOf(customer.get("mode")) != -1, 
-				"change-met": true
+				"add": shop.getMode() === "input" && customer.getCount() > 0,
+				"change": shop.getMode() === "return" && customer.getCount() > 0,
+				"change-met": shop.getMode() === "return" && shop.getClearMode() == 0 && parseFloat(screen) - total >= 0
 			});
 
+			var detail = cx({
+				"return": true,
+				"met": shop.getMode() === "return" && shop.getClearMode() == 0 && parseFloat(screen) - total >= 0
+			});
+
+			ret = shop.getClearMode() == 1 ? total : Math.abs(parseFloat(screen) - total);
 			screen = numberlib.format(screen).split(".");
 
 
@@ -70,38 +72,12 @@ gui = {
 				screen[0] = "-"+screen[0];
 			}
 
-			// if len(self.cart) == 0:
-			// 	self.confirm.config(text="Checkout")
-			// 	self.confirm.state(["disabled"]) 
-			// else:
-			// 	label = ""
-			// 	sumview = self.getCartSum()
-			// 	addNumber = True
-
-			// 	if self.mode == "return":
-			// 		label = "Vrátit"
-			// 		if self.clearMode == 1:
-			// 			sumview = -sumview
-			// 		else:
-			// 			sumview = self.getValue() - sumview
-			// 	elif self.clearMode == 2:
-			// 		label = "Smazat"
-			// 		addNumber = False
-			// 	else:
-			// 		label = "Účtovat"
-
-			// 	if addNumber == True:
-			// 		label = label + " " + self.getDisplayValue(sumview, divider=" ", dash=".", suffix=",- Kč")
-
-			// 	self.confirm.config(text=label)
-			// 	self.confirm.state(["!disabled"]) 
-
 			return (
 				<div className={display}>
 					<span className="total">{screen[0]}<span className={decimalClass}>.{screen[1]}</span></span>
 					<span className="helper">
 						<span className="sum">{numberlib.format(total)}</span>
-						<span className={ret_class}>{numberlib.format(ret)}</span>
+						<span className={detail}>{numberlib.format(ret)}</span>
 					</span>
 				</div>
 			);
@@ -162,8 +138,22 @@ gui = {
 				if (buffer.trim().length > 0) {
 					if (mode === "return") {
 						this.props.shop.setMode("input");
-						// self.checkout(self.getValue())
-						this.props.shop.setBuffer((parseFloat(buffer) - customer.getCartSum()).toString()); // self.buffer = self.getValue() - self.getCartSum()
+						var paid = parseFloat(buffer);
+						var returned = paid - customer.getCartSum();
+
+						xhr.post("http://localhost:5116/", {
+							json: customer.toSubmit(paid)
+						}, function(err, response) {
+							if (err !== undefined && err !== null) {
+								console.log(err);
+							} else {
+								console.log(response);
+							}
+						});
+
+						console.log();
+
+						this.props.shop.setBuffer(returned.toString()); // self.buffer = self.getValue() - self.getCartSum()
 						this.props.shop.setClearMode(2);
 						this.props.shop.setSelectedPos(-1);
 					} else {
@@ -209,7 +199,6 @@ gui = {
 
 				this.props.shop.setReverseMode(false);
 				this.props.shop.setClearMode(1);
-				// self.buffer = self.getDisplayValue(self.buffer, divider="", dash=",")
 			},
 			home: function(event, key) {
 				if (this.props.shop.getMode() !== "return") {
@@ -231,7 +220,6 @@ gui = {
 	ShopList: React.createClass({
 		mixins: [mixins.KeyboardEvents, mixins.BackboneEvents],
 		getBackboneState: function (props) {
-			// return {customer: props.getCustomer().toJSON(), items: props.customer.getItems().toJSON()};
 			return {shop: props.shop.toJSON(), items: props.shop.getCustomer().getItems().toJSON()};
 		},
 		watchBackboneProps: function (props, listenTo) {

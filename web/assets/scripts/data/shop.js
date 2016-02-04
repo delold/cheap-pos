@@ -77,6 +77,14 @@ var Customer = Backbone.Model.extend({
 	},
 	initialize: function() {
 		this.set("items", new ItemList(this.get("items")))
+	},
+	toSubmit: function(paid) {
+		this.set("date", new Date().getTime());
+		this.set("total", this.getCartSum());
+		this.set("paid", paid);
+		this.set("returned", paid - this.get("total"));
+
+		return JSON.stringify(this);
 	}
 });
 

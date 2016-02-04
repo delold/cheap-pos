@@ -175,7 +175,7 @@ class Server {
 			case "namemap":
 				self.retrieveItemDatabase().find({}, (err, docs) => {
 					let list = docs === null || docs === undefined ? [] : docs;
-					let result = docs.map((item) => {"name":item.name, "id": item._id});
+					let result = docs.map((item) => ({"name" : item.name, "id": item._id}));
 					self.send(client, "namemap", {"count": result.length, "result": result});
 				});
 
