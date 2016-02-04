@@ -168,7 +168,7 @@ class Cashier:
 			itemamount = ""
 			itemper = ""
 
-		self.cart.insert(targetpos, {"id":0,"name":itemname,"barcode":0,"amount":amount,"price":price,"total":price*amount, "discount": discount})
+		self.cart.insert(targetpos, {"iid":0,"name":itemname,"barcode":0,"amount":amount,"price":price,"total":price*amount, "discount": discount})
 		iid = self.tree.insert("", targetpos, text=itemname, values=(itempos, itemamount, itemper, display))
 		self.setSelection(iid)
 

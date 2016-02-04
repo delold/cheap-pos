@@ -6,9 +6,10 @@ module.exports = {
 		groups = (typeof groups === "undefined") ? true : groups;
 		ending = ending || "";
 
-		var num = number.length || _.isNumber(number) ? number : String(0);
-		
+		var num = (typeof number !== "undefined" && number.length > 0) || _.isNumber(number) ? number : String(0);
+
 		num = Number.parseFloat(num).toFixed(decimal ? 2 : 0).toString().split(".");
+
 		num[0] = (groups) ? num[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",") : num[0];
 
 	    return num.join(".") + ending;

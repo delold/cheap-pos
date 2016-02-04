@@ -46,7 +46,6 @@ gui = {
 			var screen = shop.getBuffer();
 			var total = customer.getCartSum();
 
-			console.log(screen);
 
 			var decimalClass = (screen.indexOf(".") > -1) ? "decimal active" : "decimal";
 
@@ -65,6 +64,7 @@ gui = {
 			});
 
 			screen = numberlib.format(screen).split(".");
+
 
 			if (shop.getReverseMode()) {
 				screen[0] = "-"+screen[0];
@@ -119,17 +119,19 @@ gui = {
 					this.props.shop.setClearMode(0);
 				}
 			},
-			"0|1|2|3|4|5|6|7|8|9|,": function(event, key) {
+			"0|1|2|3|4|5|6|7|8|9|,|.": function(event, key) {
 				var buffer = this.props.shop.getBuffer();
 
-				if (key === ",") {
+				if ([",", "."].indexOf(key) > -1) {
 					if (buffer.indexOf(".") == -1) {
-						buffer += ".";
+						buffer += (buffer.length > 0) ? "." : "0.";
 					} 
 				} else {
-					if(buffer.indexOf(".") > -1 && buffer.split(".")[1].length < 2) {
-						buffer += key;				
-					} else if (buffer.indexOf(".") == -1 || (buffer.indexOf(".") > -1 && buffer.split(".")[1].length < 2)) {
+					if(buffer.indexOf(".") > -1) {
+						if(buffer.split(".")[1].length < 2) {
+							buffer += key;				
+						}
+					} else {
 						if (buffer.length <= 0 && key !== "0") {
 							buffer += key;
 						} else if (buffer.split(".")[0].length < 7) {
@@ -155,17 +157,40 @@ gui = {
 			enter: function(event, key) {
 				var buffer = this.props.shop.getBuffer();
 				var mode = this.props.shop.getMode();
+				var customer = this.props.shop.getCustomer();
 
-				if (mode === "return") {
-					this.props.shop.setMode("input");
-					// self.checkout(self.getValue())
-					this.props.shop.setBuffer((parseFloat(buffer) - customer.getCartSum()).toString()); // self.buffer = self.getValue() - self.getCartSum()
-					this.props.shop.setClearMode(2);
-					// self.setSelection("")
-				} else {
-					// self.addItem(self.buffer, discount=self.reverseMode)
-					this.props.shop.setReverseMode(false);
-					this.props.shop.setBuffer("");
+				if (buffer.trim().length > 0) {
+					if (mode === "return") {
+						this.props.shop.setMode("input");
+						// self.checkout(self.getValue())
+						this.props.shop.setBuffer((parseFloat(buffer) - customer.getCartSum()).toString()); // self.buffer = self.getValue() - self.getCartSum()
+						this.props.shop.setClearMode(2);
+						this.props.shop.setSelectedPos(-1);
+					} else {
+						var discount = this.props.shop.getReverseMode();
+						
+						var display = numberlib.format(buffer, true, true, ",-");
+						var price = parseFloat(buffer);
+
+						var targetpos = customer.getItems().length;
+							
+
+						if (discount == true) {
+							console.log("discount", customer.getItems().filter(function(item) { 
+								return item.getDiscount() === true; 
+							}).length);
+							price = price * -1;
+							display = "Sleva";
+						} else {
+							targetpos -= customer.getItems().filter(function(item) { return item.getDiscount() === true; }).length;
+						}
+
+						customer.addItem({"iid":0,"name":display,"barcode":0,"amount":1,"price":price,"total":price, "discount": discount}, targetpos);
+						
+						this.props.shop.setSelectedPos(targetpos);
+						this.props.shop.setReverseMode(false);
+						this.props.shop.setBuffer("");
+					}
 				}
 			},
 			pageup: function(event, key) {
@@ -198,7 +223,7 @@ gui = {
 			return (
 				<div className="content">
 					<gui.Toolbar/>
-					<gui.ShopList customer={this.props.shop.getCustomer()}/>
+					<gui.ShopList shop={this.props.shop}/>
 				</div>
 			);
 		}
@@ -206,26 +231,69 @@ gui = {
 	ShopList: React.createClass({
 		mixins: [mixins.KeyboardEvents, mixins.BackboneEvents],
 		getBackboneState: function (props) {
-			return {customer: props.customer.toJSON(), items: props.customer.getItems().toJSON()};
+			// return {customer: props.getCustomer().toJSON(), items: props.customer.getItems().toJSON()};
+			return {shop: props.shop.toJSON(), items: props.shop.getCustomer().getItems().toJSON()};
 		},
 		watchBackboneProps: function (props, listenTo) {
-			listenTo(props.customer, 'all');
-			listenTo(props.customer.getItems(), "all")
+			listenTo(props.shop, 'all');
+			listenTo(props.shop.getCustomer(), 'all');
+			listenTo(props.shop.getCustomer().getItems(), "all")
 	 	},
 	 	onKeyPress: {
+	 		_before: function(event) {
+				var clearMode = this.props.shop.getClearMode();
+
+				if (clearMode > 0) {
+					if (clearMode == 2) {
+						this.props.shop.getCustomer().clearItems();
+					}
+
+					this.props.shop.setBuffer("");
+					this.props.shop.setClearMode(0);
+				}
+			},
 	 		up: function() {
-	 			var val = this.props.customer.get("selectedItem") - 1;
-	 			this.props.customer.set("selectedItem", Math.min(Math.max(val, 0), this.props.customer.getCount() - 1));
+	 			var val = this.props.shop.getSelectedPos() - 1;
+	 			this.props.shop.setSelectedPos(Math.min(Math.max(val, 0), this.props.shop.getCustomer().getCount() - 1));
 	 		},
 	 		down: function() {
-	 			var val = this.props.customer.get("selectedItem") + 1;
-	 			this.props.customer.set("selectedItem", Math.min(Math.max(val, 0), this.props.customer.getCount() - 1));
+	 			var val = this.props.shop.getSelectedPos() + 1;
+	 			this.props.shop.setSelectedPos(Math.min(Math.max(val, 0), this.props.shop.getCustomer().getCount() - 1));
+	 		},
+	 		"+|-": function(event, key) {
+	 			var customer = this.props.shop.getCustomer();
+	 			var pos = this.props.shop.getSelectedPos();
+
+	 			if (pos >= 0 && pos < customer.getCount()) {
+	 				var item = customer.getItem(pos);
+		 			
+		 			if (item.getDiscount() == false) {
+		 				item.incrementAmount(key === "+" ? 1 : -1);
+		 			}
+	 			}
+	 		},
+	 		del: function() {
+	 			var shop = this.props.shop;
+	 			var customer = shop.getCustomer();
+	 			var pos = shop.getSelectedPos();
+
+	 			if (pos >= 0 && pos < customer.getCount()) {
+	 				customer.removeItem(pos);
+
+	 				if(customer.getCount() <= 0 && shop.getMode() === "return") {
+	 					shop.setMode("input");
+	 				}
+
+	 				if (pos == customer.getCount()) {
+	 					shop.setSelectedPos(pos - 1);
+	 				}
+ 				}
 	 		}
 	 	},
 		render: function() {
 			var _this = this;
-			var itemList = this.props.customer.getItems().map(function(item, position) {
-				return (<gui.ShopItem item={{pos: position+1, data: item, active: (_this.props.customer.get("selectedItem") == position)}}/>);
+			var itemList = this.props.shop.getCustomer().getItems().map(function(item, position) {
+				return (<gui.ShopItem pos={position+1} active={_this.props.shop.getSelectedPos() == position} item={item}/>);
 			});
 			return (
 				<div className="list"><gui.ShopItem hint="true"/><div className="items">{itemList}</div></div>
@@ -241,14 +309,15 @@ gui = {
 			var classes = cx({
 				"label": this.props.hint,
 				"item": !this.props.hint,
-				"active": this.props.item.active
+				"active": this.props.active
 			});
 			return (
 				<div className={classes}>
-					<span className="poradi">{this.props.hint ? "#" : this.props.item.pos}</span>
-					<span className="cena">{this.props.hint ? "Cena" : numberlib.format(this.props.item.data.get("price"), true, true,",- Kč")}</span>
-					<span className="ks">{this.props.hint ? "Počet" : numberlib.format(this.props.item.data.get("ammount"), false, false, " ks")}</span>
-					<span className="celkem">{this.props.hint ? "Součet" : numberlib.format(this.props.item.data.getTotal())}</span>
+					<span className="poradi">{this.props.hint ? "#" : this.props.item.getDiscount() ? "" : this.props.pos}</span>
+					<span className="nazev">{this.props.hint ? "Název" : this.props.item.getName()}</span>
+					<span className="ks">{this.props.hint ? "Počet" : this.props.item.getDiscount() ? "" : numberlib.format(this.props.item.getAmount(), false, false, " ks")}</span>
+					<span className="zaks">{this.props.hint ? "Cena za ks" : this.props.item.getDiscount() ? "" : numberlib.format(this.props.item.getTotal())}</span>
+					<span className="celkem">{this.props.hint ? "Celkem" : numberlib.format(this.props.item.getTotal())}</span>
 				</div>
 			);
 		}

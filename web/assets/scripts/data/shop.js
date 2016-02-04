@@ -2,7 +2,7 @@ var Backbone = require("backbone");
 
 var Item = Backbone.Model.extend({
 	defaults: {
-		id: 0,	
+		iid: 0,	
 		price: 0,
 		total: 0,
 		amount: 1,
@@ -11,8 +11,23 @@ var Item = Backbone.Model.extend({
 		name: ""
 	},
 	incrementAmount: function(diff) {
-		this.set("amount", this.get("amount") + diff);
+		this.set("amount", Math.max(1, this.get("amount") + diff));
 		this.set("total", this.get("price") * this.get("amount"));
+	},
+	getPrice: function() {
+		return this.get("price");
+	},
+	getTotal: function() {
+		return this.get("total");
+	},
+	getName: function() {
+		return this.get("name");
+	},
+	getAmount: function() {
+		return this.get("amount");
+	},
+	getDiscount: function() {
+		return this.get("discount");
 	}
 });
 
@@ -26,10 +41,18 @@ var Customer = Backbone.Model.extend({
 		returned: 0,
 		items: []
 	},
-	addItem: function(shopItem) {
-		// var pos = this.get("itemList").length - ((shopItem.get("price") > 0) ? this.get("negativeCount") : 0);
-		// this.get("itemList").add(shopItem, {"at": pos});
-		this.get("items").add(shopItem);
+	addItem: function(shopItem, pos) {
+		console.log(shopItem);
+
+		if (!(shopItem instanceof Backbone.Model)) {
+			shopItem = new Item(shopItem);
+		}
+
+
+		var pos = pos !== undefined ? pos : this.get("items").length;
+		this.get("items").add(shopItem, {"at": pos});
+
+		console.log(this.get("items").length);
 		return pos;
 	},
 	getItem: function(position) {
@@ -63,6 +86,7 @@ var App = Backbone.Model.extend({
 		reverseMode: false,
 		clearMode: 0,
 		buffer: "",
+		selectedPos: 0,
 		customer: null
 	},
 	initialize: function() {
@@ -102,6 +126,12 @@ var App = Backbone.Model.extend({
 	},
 	setReverseMode: function(reverseMode) {
 		this.set("reverseMode", reverseMode);
+	},
+	setSelectedPos: function(selectedPos) {
+		this.set("selectedPos", selectedPos);
+	},
+	getSelectedPos: function() {
+		return this.get("selectedPos");
 	}
 });
 
