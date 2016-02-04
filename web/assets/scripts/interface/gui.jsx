@@ -141,7 +141,7 @@ gui = {
 						var paid = parseFloat(buffer);
 						var returned = paid - customer.getCartSum();
 
-						xhr.post("http://localhost:5116/", {
+						xhr.post("http://localhost:5116/api", {
 							json: customer.toSubmit(paid)
 						}, function(err, response) {
 							if (err !== undefined && err !== null) {

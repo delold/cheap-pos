@@ -47,7 +47,7 @@ class HttpClient():
 class Cashier:
 	def __init__(self):
 		# rest server
-		self.httpClient = HttpClient("http://127.0.0.1:5116/", self.onDataReceived)
+		self.httpClient = HttpClient("http://127.0.0.1:5116/api/", self.onDataReceived)
 		self.httpClient.send("ping")
 
 		# data related stuff

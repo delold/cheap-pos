@@ -84,7 +84,11 @@ var Customer = Backbone.Model.extend({
 		this.set("paid", paid);
 		this.set("returned", paid - this.get("total"));
 
-		return JSON.stringify(this);
+
+		return {
+			type: "checkout",
+			data: this
+		};
 	}
 });
 

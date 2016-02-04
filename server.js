@@ -7,9 +7,10 @@ const md5 = require("md5");
 const http = require("http");
 const path = require("path");
 
+const express = require("express");
+
 class Server {
 	constructor(port) {
-		this.port = port;
 		this.db = [];
 		this.itemdb = null;
 		// this.wss = new WSServer({port: port});
@@ -18,7 +19,16 @@ class Server {
 		// 	console.log(err)
 		// });
 		this.wss = null;
-		this.http = http.createServer(this.onHttpMessage.bind(this));
+		this.port = null;	
+
+		if (port !== undefined) {
+			this.port = port;
+			this.http = http.createServer(this.onHttpMessage.bind(this));
+		} 
+	}
+
+	middleware() {
+		return this.onHttpMessage.bind(this);
 	}
 
 	start() {
@@ -33,7 +43,9 @@ class Server {
 		});
 	}
 
-	onHttpMessage(request, response) {
+	onHttpMessage(request, response, next) {
+		var next = (next !== null && next !== undefined) ? next : function() {};
+
 		if(request.method == "POST" && request.headers["content-type"] === "application/json") {
 			let body = "";
 			let self = this;
@@ -251,4 +263,11 @@ class Server {
 	}
 }
 
-new Server(5116).start();
+var app = express();
+app.use("/api", new Server().middleware());
+app.use("/client", express.static(__dirname + "/web"));
+
+app.listen(5116, () => {
+	console.log("Running on port:", 5116);
+});
+// new Server(5116).start();
