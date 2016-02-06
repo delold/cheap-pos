@@ -1,0 +1,31 @@
+{
+  "name": "cheap-pos-warehouse",
+  "version": "1.0.0",
+  "description": "warehouse app for cheap-pos",
+  "main": "index.html",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/delold/nw-pos"
+  },
+  "keywords": [],
+  "author": "David Duong",
+  "license": "MIT",
+  "dependencies": {
+    "react": "^0.14.7",
+    "react-winjs": "github:staxmanade/react-winjs",
+    "winjs": "^4.4.0",
+    "xhr": "^2.2.0"
+  },
+  "devDependencies": {
+    "underscore": "^1.7.0",
+    "browserify": "^8.1.3",
+    "gulp": "^3.8.11",
+    "gulp-less": "^3.0.0",
+    "gulp-livereload": "^3.7.0",
+    "gulp-notify": "^2.2.0",
+    "gulp-plumber": "^0.6.6",
+    "gulp-react": "^2.0.0",
+    "vinyl-source-stream": "^1.0.0",
+    "watchify": "^2.3.0"
+  }
+}

@@ -266,8 +266,8 @@ class Server {
 var app = express();
 app.use("/api", new Server().middleware());
 app.use("/client", express.static(__dirname + "/web"));
+app.use("/warehouse", express.static(__dirname + "/warehouse"));
 
 app.listen(5116, () => {
 	console.log("Running on port:", 5116);
 });
-// new Server(5116).start();

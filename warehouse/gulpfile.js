@@ -3,7 +3,6 @@ var less = require("gulp-less");
 var livereload = require("gulp-livereload");
 var plumber = require('gulp-plumber');
 var notify = require("gulp-notify");
-var mocha = require("gulp-mocha");
 var react = require("gulp-react");
 
 var _ = require("underscore");
@@ -11,15 +10,6 @@ var _ = require("underscore");
 var source = require("vinyl-source-stream");
 var watchify = require("watchify");
 var browserify = require("browserify");
-
-var runNw = function() {
-	var path = require("nw").findpath();
-	var spawn = require('child_process').spawn;
-
-	spawn(path, [__dirname]).on("exit", function() {
-		process.exit();
-	});
-};
 
 gulp.task("styles", function() {
 	return gulp.src("./assets/styles/*.less")
@@ -68,14 +58,4 @@ gulp.task("watch", ["watchify"], function() {
 	gulp.watch("./*.html", ["html"]);
 });
 
-gulp.task("run", runNw);
-
-gulp.task("test", function() {
-	return gulp.src("test/*.js").pipe(mocha());
-});
-
-gulp.task("dev", ["watch"], function() {
-	runNw();
-});
-
-gulp.task("default", ["dev"]);
+gulp.task("default", ["watch"]);
