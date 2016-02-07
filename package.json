@@ -10,9 +10,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.7.1",
     "express": "^4.13.4",
     "md5": "^2.0.0",
     "nedb": "^1.5.1",
     "ws": "^1.0.0"
+  },
+  "devDependencies": {
+    "webpack": "^1.12.13"
   }
 }

@@ -1,5 +1,6 @@
-// var Shop = require("./data/shop");
-var Gui = require("./interface/gui");
+require("./style.less");
+
+var Gui = require("./interface/gui.jsx");
 
 var React = require("react");
 var ReactDom = require("react-dom");

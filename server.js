@@ -8,6 +8,7 @@ const http = require("http");
 const path = require("path");
 
 const express = require("express");
+const cors = require("cors");
 
 class Server {
 	constructor(port) {
@@ -264,9 +265,11 @@ class Server {
 }
 
 var app = express();
+app.use(cors());
+
 app.use("/api", new Server().middleware());
 app.use("/client", express.static(__dirname + "/web"));
-app.use("/warehouse", express.static(__dirname + "/warehouse"));
+app.use("/warehouse", express.static(__dirname + "/warehouse/dist"));
 
 app.listen(5116, () => {
 	console.log("Running on port:", 5116);
