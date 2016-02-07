@@ -23,10 +23,7 @@ module.exports = {
 		loaders: [{
 			test: /\.jsx?$/,
 			exclude: /(node_modules|bower_components)/,
-			loader: 'babel', // 'babel-loader' is also a legal name to reference
-			query: {
-				presets: ['react']
-			}
+			loaders: ["react-hot", "babel?presets[]=react"] 
 		}, {
 			test: /\.less$/,
 			loaders: ["style", "css", "less"]
