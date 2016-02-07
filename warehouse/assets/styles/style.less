@@ -6,11 +6,6 @@ button.win-splitviewpanetoggle:after {
 	font-size: 20px;
 }
 
-#content > * {
-	margin-left: 20px;
-}
-
-
 #toolbar {
 	margin-left: 0 !important;
 	position: relative;
@@ -32,6 +27,7 @@ button.win-splitviewpanetoggle:after {
 
 .form {
 	width: 296px;
+	margin-right: 20px;
 
 	label {
 		display: block;
@@ -83,3 +79,33 @@ button.win-splitviewpanetoggle:after {
 	}
 }
 
+#content {
+
+	> * {
+		margin-left: 20px;
+	}
+}
+
+.itemList {
+	height: auto;
+	
+	.item {
+		padding: 15px;
+	}
+	.item .table {
+		display: flex;
+	}
+
+	.item > * {
+		display: block;
+	}
+
+	.item .name {
+		flex-grow: 1;
+	}
+
+	.item .price {
+		min-width: 150px;
+		text-align: right;
+	}
+}
