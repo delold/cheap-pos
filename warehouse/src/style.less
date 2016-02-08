@@ -5,7 +5,6 @@
 #toolbar {
 	margin-left: 0 !important;
 	position: relative;
-	margin-bottom: 20px;
 
 	> span {
 		position: absolute;
@@ -21,68 +20,109 @@
 	}
 }
 
-.form {
-	width: 296px;
-	margin-right: 20px;
+#content {
+	height: 100%;
+}
 
-	label {
-		display: block;
-	}
 
-	.input-group {
-		width: 100%;
-		margin-bottom: 20px;
+#content > .edit {
+	margin-left: 0;
+	height: 100%;
+	/*position: relative;*/
 
-		input {
-			width: 100%;
-			min-width: 0;
+	.sidebar {
+		width: 320px;
+		height: 100%;
+
+		box-sizing: border-box;
+		padding: 20px;
+		display: inline-block;
+
+		.form {
+			display: block;
+			float: left;
 		}
-	}
 
-	.input-divide {
-		width: 100%;
-		display: flex;
-		justify-content: space-between;
+		label {
+			display: block;
+		}
 
 		.input-group {
-			width: 50%;
-			flex-grow: 1;
-			display: inline-block;
+			width: 100%;
+			margin-bottom: 20px;
+
+			input {
+				width: 100%;
+				min-width: 0;
+			}
 		}
 
-		.input-group:first-child .win-textbox + * {
-			margin-right: 20px;
+		.input-divide {
+			width: 100%;
+			display: flex;
+			justify-content: space-between;
+
+			.input-group {
+				width: 50%;
+				flex-grow: 1;
+				display: inline-block;
+			}
+
+			.input-group:first-child .win-textbox + * {
+				margin-right: 20px;
+			}
 		}
-	}
 
-	.scale {
-		width: 100%;
-		display: flex;
-		align-items: center;
+		.scale {
+			width: 100%;
+			display: flex;
+			align-items: center;
 
-		.win-button {
-			height: 32px;
+			.win-button {
+				height: 32px;
+			}
+
+			.win-textbox + * {
+				margin-left: 10px;
+			}
 		}
 
-		.win-textbox + * {
-			margin-left: 10px;
+		.win-submit {
+			margin-top: 20px;
+			width: 100%;
 		}
-	}
-
-	> .win-button {
-		margin-top: 20px;
-		width: 100%;
 	}
 }
 
-#content {
-	> * {
-		margin-left: 20px;
+#content > .search {
+	margin: 20px;
+	.searchbox {
+		display: flex;
+		align-items: center;
+
+		input {
+			height: 40px;
+		}
+
+		.win-icon {
+		    font-family: "Segoe MDL2 Assets", "Symbols";
+		    font-size: 16px;
+
+		    margin-left: 10px;
+		    min-height: 40px;
+		    min-width: 40px;
+		}
+	}	
+	.itemList {
+		width: 100%;
 	}
 }
 
 .itemList {
-	
+	width: ~"calc(100% - 320px)";
+	height: 100%;
+	display: inline-block;
+
 	.item {
 		padding: 15px;
 	}

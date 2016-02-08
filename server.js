@@ -145,6 +145,7 @@ class Server {
 
 					let querytype = data.type === "id" ? "_id" : data.type;
 
+					data.query = (data.type === "name") ? new RegExp(query, "gi") : data.query;
 					db.find({[querytype]: data.query}, (err, docs) => {
 						let result = docs === null || docs === undefined ? [] : docs;
 						self.send(client, "getitem", {"count": result.length, "result": result});

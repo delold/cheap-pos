@@ -21,20 +21,28 @@ gui = {
 		},
 		getInitialState: function () {
 			return {
-				content: EditGui,
+				content: FindGui,
 				paneOpened: false
 			};
 		},
 		renderContent: function() {
 			var label = this.state.content.getLabel();
-			var toolbar = this.state.content.getToolbar();
 			var content = this.state.content.getContent();
 
+			var callback = function(type) {
+				if(this.refs.content !== undefined && this.refs.content.handleToolbar !== undefined) {
+					this.refs.content.handleToolbar(type);
+				}
+			}.bind(this);
+
+			var toolbar = this.state.content.getToolbar(callback);
 			return (
 				<div id="content">
 					<div id="toolbar">
 						<span>{label}</span>
-						<ReactWinJS.ToolBar>{toolbar}</ReactWinJS.ToolBar>
+						<ReactWinJS.ToolBar>
+							{toolbar}
+						</ReactWinJS.ToolBar>
 					</div>
 					{content}
 				</div>
