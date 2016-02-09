@@ -145,9 +145,19 @@ class Server {
 
 					let querytype = data.type === "id" ? "_id" : data.type;
 
-					data.query = (data.type === "name") ? new RegExp(query, "gi") : data.query;
+					data.query = (data.type === "name") ? new RegExp(data.query, "gi") : data.query;
 					db.find({[querytype]: data.query}, (err, docs) => {
 						let result = docs === null || docs === undefined ? [] : docs;
+						result.sort(function(a, b) {
+							var x= a.name.toLowerCase();
+							var y= b.name.toLowerCase();
+							if (x < y) 
+								return -1;
+							if (x > y)
+								return 1;
+							return 0; 
+						});
+
 						self.send(client, "getitem", {"count": result.length, "result": result});
 					});
 
@@ -197,6 +207,15 @@ class Server {
 			case "getitems":
 				self.retrieveItemDatabase().find({}, (err, docs) => {
 					docs = docs === null || docs === undefined ? [] : docs;
+					docs.sort(function(a, b) {
+						var x= a.name.toLowerCase();
+						var y= b.name.toLowerCase();
+						if (x < y) 
+							return -1;
+						if (x > y)
+							return 1;
+						return 0; 
+					});
 					self.send(client, "getitems", {"count": docs.length, "result": docs});
 				});
 

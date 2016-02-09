@@ -4,6 +4,8 @@ var ReactWinJS = require("react-winjs");
 var numberlib = require("../utils/number");
 var xhr = require("xhr");
 
+var Api = require("../utils/api");
+
 module.exports = React.createClass({
 	itemRenderer: ReactWinJS.reactRenderer(function(item) {
 		var contentComponent = <div className="win-type-body">{item.data.note}</div>
@@ -23,16 +25,12 @@ module.exports = React.createClass({
 		};
 	},
 	updateRemote: function() {
-   		xhr.post("http://localhost:5116/api", {
-			json: {type: "getitems"}
-		}, function(err, response) {
-			if (err !== undefined && err !== null && response !== undefined && response.body.data !== undefined) {
-				console.log(err);
-			} else {
-				this.updateState(response.body.data);
-			}
-		}.bind(this));
-   	},
+		Api.send("getitems").then(function(response) {
+			this.updateState(response.data);
+		}.bind(this), function(err) {
+			console.log(err);
+		});
+	},
    	updateState: function(data) {
    		if (data === undefined || data === null) {
 			this.setState(this.getInitialState());
@@ -41,28 +39,43 @@ module.exports = React.createClass({
    		}
    	},
    	componentDidMount: function() {
-   		console.log(this.props);
-   		if (this.props.data === undefined) {
+   		if (this.props.data === undefined || this.props.data === false) {
    			this.updateRemote();
    		} else {
    			this.updateState(this.props.data);
    		}
    	},
    	componentWillReceiveProps: function(nextProps) {
-   		if (nextProps.data !== undefined) {
+
+   		if (JSON.stringify(this.props.data) === JSON.stringify(nextProps.data)) {
+   			return;
+   		}
+
+   		if (nextProps.data === false && this.props.data !== false) {
+   			this.updateRemote();
+   		} else if (nextProps.data !== undefined) {
    			this.updateState(nextProps.data);
    		}
    	},
    	shouldComponentUpdate: function(nextProps, nextState) {
-		if(nextProps !== undefined && nextProps.data !== undefined && JSON.stringify(this.props.data) === JSON.stringify(nextProps.data)) {
-			return false;
-		} 
+
+   		if (JSON.stringify(this.state.data) === JSON.stringify(nextState.data)) {
+   			return false;
+   		}
+
+  //  		console.log(nextProps.data, this.props.data);
+		// if(nextProps !== undefined && nextProps.data !== undefined && nextProps.data !== false && JSON.stringify(this.props.data) === JSON.stringify(nextProps.data)) {
+		// 	return false;
+		// } 
 		return true;
 	},
 	render: function () {
+		console.log(this.state.list)
+		var classes = "itemList win-selectionstylefilled win-type-body" + ((this.state.list.length <= 0) ? " empty" : "");
+
 		return (
 			<ReactWinJS.ListView
-				className="itemList win-selectionstylefilled win-type-body"
+				className={classes}
 				itemDataSource={this.state.list.dataSource}
 				itemTemplate={this.itemRenderer}
 				layout={this.state.layout}

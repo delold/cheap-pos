@@ -21,52 +21,41 @@ gui = {
 		},
 		getInitialState: function () {
 			return {
-				content: FindGui,
+				content: EditGui,
 				paneOpened: false
 			};
 		},
 		renderContent: function() {
-			var label = this.state.content.getLabel();
-			var content = this.state.content.getContent();
-
-			var callback = function(type) {
-				if(this.refs.content !== undefined && this.refs.content.handleToolbar !== undefined) {
-					this.refs.content.handleToolbar(type);
-				}
+			var callback = function(type, data) {
+				if (this.refs.content !== undefined && this.refs.content.handleAction !== undefined) {
+					this.refs.content.handleAction(type, data);
+				} 
 			}.bind(this);
 
-			var toolbar = this.state.content.getToolbar(callback);
 			return (
 				<div id="content">
-					<div id="toolbar">
-						<span>{label}</span>
-						<ReactWinJS.ToolBar>
-							{toolbar}
-						</ReactWinJS.ToolBar>
-					</div>
-					{content}
+					<this.state.content.Content ref="content" />
+					<this.state.content.Toolbar ref="toolbar" callback={callback} />
 				</div>
 			);
 		},
 		render: function () {
 			var paneComponent = (
 				<div>
-					<ReactWinJS.SplitViewPaneToggle
+					<div className="menu">
+						<ReactWinJS.SplitViewPaneToggle
 							aria-controls={"splitViewApp"}
 							paneOpened={this.state.paneOpened}
 							onInvoked={this.handleTogglePane} />
-
-					<ReactWinJS.SplitView.Command
-						label="Najít zboží"
-						icon="find"
-						onInvoked={this.handleChangeContent.bind(null, FindGui)} />
+						<span className="label">cheappos editor</span>
+					</div>
 					<ReactWinJS.SplitView.Command
 						label="Správa zboží"
-						icon="edit"
+						icon="shop"
 						onInvoked={this.handleChangeContent.bind(null, EditGui)} />
 					<ReactWinJS.SplitView.Command
 						label="Statistiky"
-						icon="view"
+						icon="calendarweek"
 						onInvoked={this.handleChangeContent.bind(null, StatsGui)} />
 				</div>
 			);
@@ -79,8 +68,6 @@ gui = {
 					className="win-type-body"
 					paneComponent={paneComponent}
 					contentComponent={content}
-					closedDisplayMode="inline"
-        			openedDisplayMode="inline"
 					paneOpened={this.state.paneOpened}
 					onAfterClose={this.handleAfterClose} />
 			);
