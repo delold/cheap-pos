@@ -62,13 +62,15 @@ class Server {
 			});
 
 			request.on('end', () => {
-				try {
-					var data = JSON.parse(body);
-					self.onMessage(response, data.type, data.data);
-				} catch (err) {
-					response.end(JSON.stringify({"type": "error", "data": 500}));
-					console.log(err.message);
-				}
+				var data = JSON.parse(body);
+					self.onMessage(response, data.type, data.data);	
+				// try {
+				// 	var data = JSON.parse(body);
+				// 	self.onMessage(response, data.type, data.data);
+				// } catch (err) {
+				// 	response.end(JSON.stringify({"type": "error", "data": 500}));
+				// 	console.log(err.message);
+				// }
 			});
 		} else {
 			response.end(JSON.stringify({"type": "error", "data": 404}));
@@ -245,20 +247,31 @@ class Server {
 				for(var i = 0; fromDate.getTime() + i * 86400000 <= toDate.getTime(); i++ ) {
 					keys.push(fromDate.getTime() + i * 86400000);
 					promises.push(when.promise((resolve, reject) => {
-						let db = path.join("databases", "sold", self.getTime(keys[i]) + ".db");
+						let key = path.join("databases", "sold", self.getTime(keys[i]) + ".db");
 
 						try {
-						    fs.accessSync(db, fs.F_OK);
+						    fs.accessSync(key, fs.F_OK);
+						    let store = null;
 
-						    let store = new Datastore({ filename: db, autoload: true });
-						    store.persistence.stopAutocompaction();
+							for(let x = 0; x < self.db.length; x++) {
+								let db = self.db[x];
+								if(db.key === key) {
+									store = db.datastore;
+									break;
+								}
+							}
+
+							if (store === null) {
+								store = new Datastore({ filename: key, autoload: true });
+							    store.persistence.stopAutocompaction();
+								self.db.push({key: key, datastore: store});
+							}
 
 						    store.find({}, (err, docs) => {
 						    	docs = docs === null || docs === undefined ? [] : docs;
 						    	resolve(docs);
 						    });
 						} catch (e) {
-							// console.log(e);
 						    reject("not found");
 						}
 					}));
@@ -269,6 +282,9 @@ class Server {
 
 					desc.forEach((item, index) => {
 						let content = item.value !== undefined ? item.value : [];
+
+						console.log(content);
+
 						payload.result.push({
 							"date": keys[index], 
 							"label": self.getTime(keys[index]), 
@@ -287,6 +303,7 @@ class Server {
 	}
 
 	retrieveItemDatabase() {
+
 		if(this.itemdb === null) {
 			this.itemdb = new Datastore({filename: path.join("databases", "items.db"), autoload: true});
 		}
