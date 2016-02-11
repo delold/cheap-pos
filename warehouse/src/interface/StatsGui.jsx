@@ -11,9 +11,6 @@ var gui = {
 	}),
 	Content: React.createClass({
 		render: function() {
-			console.log()
-
-			console.log("rendering");
 			Api.send("getlogs", {"from": 1451606400000, "to": 1454198400000}).then(function(result) {
 				console.log(result);
 			}, function(err) {

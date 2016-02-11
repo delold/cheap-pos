@@ -249,7 +249,11 @@ class Server {
 
 						try {
 						    fs.accessSync(db, fs.F_OK);
-						    new Datastore({ filename: db, autoload: true }).find({}, (err, docs) => {
+
+						    let store = new Datastore({ filename: db, autoload: true });
+						    store.persistence.stopAutocompaction();
+
+						    store.find({}, (err, docs) => {
 						    	docs = docs === null || docs === undefined ? [] : docs;
 						    	resolve(docs);
 						    });
@@ -264,10 +268,14 @@ class Server {
 					let payload = {count: desc.length, result: []};
 
 					desc.forEach((item, index) => {
+						let content = item.value !== undefined ? item.value : [];
 						payload.result.push({
 							"date": keys[index], 
 							"label": self.getTime(keys[index]), 
-							"content": item.value !== undefined ? item.value : []
+							"sum": content.reduce((mem, item) => {
+								return mem + item.total;
+							}, 0),
+							"content": content
 						});	
 					});
 
