@@ -64,9 +64,22 @@ var gui = {
 			this.poll();
 		},
 		render: function() {
-			var chart = this.state.data.length > 0 ? <LineChart data={this.state.lineset} options={{responsive: true, animation: false, bezierCurve: false, scaleLabel: function(label) {
-				return numberlib.format(label.value);
-			} }} /> : null;
+			var options = {
+				responsive: true, 
+				animation: false, 
+				bezierCurve: false,
+				pointHitDetectionRadius: 5,
+				scaleShowHorizontalLines: false,
+				scaleShowVerticalLines: false, 
+				scaleLabel: function(label) { 
+					return numberlib.format(label.value);
+				}, 
+				tooltipTemplate: function(item) {
+					return ((item.label) ? item.label + ": " : "") + numberlib.format(item.value);
+				}
+			};
+
+			var chart = this.state.data.length > 0 ? <LineChart data={this.state.lineset} options={options} /> : null;
 			return (<div className="stats">
 				<h2 className="win-h2">Denní pohled</h2>
 				<div className="form">
