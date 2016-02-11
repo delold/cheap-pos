@@ -3,6 +3,7 @@ var ReactWinJS = require("react-winjs");
 
 var Api = require("../utils/api");
 
+var numberlib = require("../utils/number");
 var LineChart = require("react-chartjs").Line;
 
 var gui = {
@@ -63,7 +64,9 @@ var gui = {
 			this.poll();
 		},
 		render: function() {
-			var chart = this.state.data.length > 0 ? <LineChart data={this.state.lineset} options={{responsive: true, animation: false}} /> : null;
+			var chart = this.state.data.length > 0 ? <LineChart data={this.state.lineset} options={{responsive: true, animation: false, bezierCurve: false, scaleLabel: function(label) {
+				return numberlib.format(label.value);
+			} }} /> : null;
 			return (<div className="stats">
 				<h2 className="win-h2">Denní pohled</h2>
 				<div className="form">
