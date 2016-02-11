@@ -70,8 +70,8 @@ module.exports = React.createClass({
 		return true;
 	},
 	render: function () {
-		console.log(this.state.list)
-		var classes = "itemList win-selectionstylefilled win-type-body" + ((this.state.list.length <= 0) ? " empty" : "");
+
+		var classes = "itemList win-selectionstylefilled win-type-body" + ((this.state.data.count !== undefined && this.state.list.length <= 0) ? " empty" : "");
 
 		return (
 			<ReactWinJS.ListView

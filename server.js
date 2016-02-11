@@ -10,6 +10,9 @@ const path = require("path");
 const express = require("express");
 const cors = require("cors");
 
+const fs = require("fs");
+const when = require("when");
+
 class Server {
 	constructor(port) {
 		this.db = [];
@@ -83,7 +86,6 @@ class Server {
 	}
 
 	onMessage(client, type, data) {
-		console.log("onMessage: "+type);
 		let self = this;
 
 		switch(type) {
@@ -217,6 +219,59 @@ class Server {
 						return 0; 
 					});
 					self.send(client, "getitems", {"count": docs.length, "result": docs});
+				});
+
+				break;
+			case "getlogs":
+				if (data.from === undefined || data.to === undefined) {
+					return self.send(client, "status", {"status": "fail", "hash": null, "error": "from or to not defined"});
+				}
+
+				let fromDate = new Date(data.from);
+				fromDate.setHours(0);
+				fromDate.setMinutes(0);
+				fromDate.setSeconds(0);
+				fromDate.setMilliseconds(0);
+
+				let toDate = new Date(data.to);
+				toDate.setHours(0);
+				toDate.setMinutes(0);
+				toDate.setSeconds(0);
+				toDate.setMilliseconds(0);
+
+				let keys = [];
+				let promises = [];
+
+				for(var i = 0; fromDate.getTime() + i * 86400000 <= toDate.getTime(); i++ ) {
+					keys.push(fromDate.getTime() + i * 86400000);
+					promises.push(when.promise((resolve, reject) => {
+						let db = path.join("databases", "sold", self.getTime(keys[i]) + ".db");
+
+						try {
+						    fs.accessSync(db, fs.F_OK);
+						    new Datastore({ filename: db, autoload: true }).find({}, (err, docs) => {
+						    	docs = docs === null || docs === undefined ? [] : docs;
+						    	resolve(docs);
+						    });
+						} catch (e) {
+							// console.log(e);
+						    reject("not found");
+						}
+					}));
+				}
+
+				when.settle(promises).then(function(desc) {
+					let payload = {count: desc.length, result: []};
+
+					desc.forEach((item, index) => {
+						payload.result.push({
+							"date": keys[index], 
+							"label": self.getTime(keys[index]), 
+							"content": item.value !== undefined ? item.value : []
+						});	
+					});
+
+					self.send(client, "getlogs", payload);
 				});
 
 				break;

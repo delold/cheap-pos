@@ -1,6 +1,8 @@
 var React = require("react");
 var ReactWinJS = require("react-winjs");
 
+var Api = require("../utils/api");
+
 var gui = {
 	Toolbar: React.createClass({
 		render: function() {
@@ -9,7 +11,18 @@ var gui = {
 	}),
 	Content: React.createClass({
 		render: function() {
-			return (<div className="stats">Ahoj světe</div>);
+			console.log()
+
+			console.log("rendering");
+			Api.send("getlogs", {"from": 1451606400000, "to": 1454198400000}).then(function(result) {
+				console.log(result);
+			}, function(err) {
+				console.log(err);
+			});
+
+			return (<div className="stats">
+				<h2 className="win-h2">Poslední test měsíc</h2>
+			</div>);
 		}
 	})
 }

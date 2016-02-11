@@ -1,7 +1,6 @@
 var React = require("react");
 var ReactWinJS = require("react-winjs");
 
-var FindGui = require("./FindGui.jsx");
 var EditGui = require("./EditGui.jsx");
 var StatsGui = require("./StatsGui.jsx");
 
@@ -26,16 +25,16 @@ gui = {
 			};
 		},
 		renderContent: function() {
-			var callback = function(type, data) {
-				if (this.refs.content !== undefined && this.refs.content.handleAction !== undefined) {
-					this.refs.content.handleAction(type, data);
+			var callback = function(target, type, data) {
+				if (this.refs[target] !== undefined && this.refs[target].handleAction !== undefined) {
+					this.refs[target].handleAction(type, data);
 				} 
-			}.bind(this);
+			};
 
 			return (
 				<div id="content">
-					<this.state.content.Content ref="content" />
-					<this.state.content.Toolbar ref="toolbar" callback={callback} />
+					<this.state.content.Content ref="content" callback={callback.bind(this, "toolbar")} />
+					<this.state.content.Toolbar ref="toolbar" callback={callback.bind(this, "content")} />
 				</div>
 			);
 		},
